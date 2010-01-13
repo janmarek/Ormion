@@ -153,6 +153,15 @@ class OrmionMapper extends Object {
 	}
 
 	/**
+	 * Is column nullable
+	 * @param string $name
+	 * @return bool
+	 */
+	public function isColumnNullable($name) {
+		return $this->getConfig()->get("column")->get($name)->get("nullable");
+	}
+
+	/**
 	 * Is primary key auto increment
 	 * @return bool
 	 */

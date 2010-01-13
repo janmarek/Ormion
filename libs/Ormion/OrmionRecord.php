@@ -52,7 +52,7 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 
 	// data
 
-	/** @var string */
+	/** @var  */
 	private $data;
 
 	/** @var array */
@@ -197,6 +197,18 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	}
 
 	/**
+	 * Get data storage
+	 * @return ArrayObject
+	 */
+	protected function getStorage() {
+		if (empty($this->data)) {
+			$this->data = new ArrayObject(array());
+		}
+		
+		return $this->data;
+	}
+
+	/**
 	 * Set all values as unmodified
 	 */
 	public function clearModified() {
@@ -235,7 +247,7 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	 * @param mixed $value
 	 * @return OrmionRecord
 	 */
-	protected function setDefaultValue($name, $value) {
+	public function setDefaultValue($name, $value) {
 		$this->defaults[$name] = $value;
 		return $this;
 	}
@@ -246,7 +258,7 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	 * @param string $name
 	 * @return OrmionRecord
 	 */
-	protected function setAlias($alias, $name) {
+	public function setAlias($alias, $name) {
 		$this->aliases[$alias] = $name;
 		return $this;
 	}
@@ -260,7 +272,7 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 		if ($columns === null) {
 			$columns = array_unique(
 				array_merge(
-					array_keys($this->data),
+					array_keys($this->getStorage()->getArrayCopy()),
 					array_keys($this->defaults)
 				)
 			);
@@ -302,26 +314,11 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	}
 
 	/**
-	 * Magic getter for field value, do not call directly
-	 * @param string $name
+	 * Convert value
+	 * @param mixed $value
+	 * @param string $type
 	 * @return mixed
 	 */
-	public function & __get($name) {
-		$name = $this->fixColumnName($name);
-
-		if (isset($this->getters[$name])) {
-			return call_user_func($this->getters[$name], $data, $name);
-		} else {
-			if (array_key_exists($name, $this->data)) {
-				return $this->data[$name];
-			} elseif (array_key_exists($name, $this->defaults)) {
-				return $this->defaults[$name];
-			} else {
-				throw new MemberAccessException("Value '$name' was not set.");
-			}
-		}
-	}
-
 	protected function convertValue($value, $type) {
 		switch ($type) {
 			case dibi::TEXT:
@@ -354,6 +351,29 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	}
 
 	/**
+	 * Magic getter for field value, do not call directly
+	 * @param string $name
+	 * @return mixed
+	 */
+	public function & __get($name) {
+		$name = $this->fixColumnName($name);
+
+		$data = $this->getStorage();
+
+		if (isset($this->getters[$name])) {
+			return call_user_func($this->getters[$name], $data, $name);
+		} else {
+			if (array_key_exists($name, $data)) {
+				return $data[$name];
+			} elseif (array_key_exists($name, $this->defaults)) {
+				return $this->defaults[$name];
+			} else {
+				throw new MemberAccessException("Value '$name' was not set.");
+			}
+		}
+	}
+
+	/**
 	 * Magic setter for field value, do not call directly
 	 * @param string $name
 	 * @param mixed $value
@@ -364,9 +384,17 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 		$name = $this->fixColumnName($name);
 
 		if (isset($this->setters[$name])) {
-			call_user_func($this->setters[$name], $data, $name, $value);
+			call_user_func($this->setters[$name], $this->getStorage(), $name, $value);
 		} else {
-			$this->data[$name] = $this->convertValue($value, static::getMapper()->getColumnType($name));
+			$data = $this->getStorage();
+			$mapper = static::getMapper();
+
+			if ($value === null && $mapper->isColumnNullable($name)) {
+				$data[$name] = null;
+			} else {
+				$data[$name] = $this->convertValue($value, $mapper->getColumnType($name));
+			}
+
 			$this->modified[$name] = true;
 		}
 	}
@@ -377,7 +405,8 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	 * @return bool
 	 */
 	public function __isset($name) {
-		return isset($this->data[$this->fixColumnName($name)]);
+		$data = $this->getStorage();
+		return isset($data[$this->fixColumnName($name)]);
 	}
 
 	/**
@@ -386,7 +415,8 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	 */
 	public function __unset($name) {
 		$this->updating();
-		unset($this->data[$this->fixColumnName($name)]);
+		$data = $this->getStorage();
+		unset($data[$this->fixColumnName($name)]);
 	}
 
 	/**
@@ -395,7 +425,8 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	 * @return bool
 	 */
 	public function hasValue($name) {
-		return array_key_exists($this->fixColumnName($name), $this->data);
+		$data = $this->getStorage()->getArrayCopy();
+		return array_key_exists($this->fixColumnName($name), $data);
 	}
 
 	// ArrayAccess

@@ -29,7 +29,7 @@ abstract class LazyArrayList extends ArrayList {
 	 * Public property setter.
 	 * @param bool $loaded
 	 */
-	public function setLoaded($loaded) {
+	protected function setLoaded($loaded) {
 		$this->loaded = (bool) $loaded;
 	}
 
@@ -40,10 +40,24 @@ abstract class LazyArrayList extends ArrayList {
 	 */
 	abstract protected function load();
 
+
+	/**
+	 * Ensure that collection is loaded.
+	 * @return void
+	 */
 	protected function loadCheck() {
 		if (!$this->loaded) {
 			$this->load();
 		}
+	}
+
+
+	/**
+	 * Forces collection to reload.
+	 * @return void
+	 */
+	public function invalidate() {
+		$this->loaded = FALSE;
 	}
 
 
