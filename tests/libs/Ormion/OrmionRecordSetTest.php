@@ -130,10 +130,15 @@ class MockRecord extends FreezableObject {
 
 	public function setState($state) {
 		$this->state = $state;
+		return $this;
 	}
 
 	public function & __get($name) {
 		return $this->data[$name];
+	}
+
+	public function clearModified() {
+		return $this;
 	}
 
 }

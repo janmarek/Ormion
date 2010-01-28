@@ -61,7 +61,7 @@ class OrmionMapper extends Object {
 	 * Get dibi connection
 	 * @return DibiConnection
 	 */
-	protected function getDb() {
+	public function getDb() {
 		return dibi::getConnection($this->dibiConnectionName);
 	}
 
@@ -158,7 +158,11 @@ class OrmionMapper extends Object {
 	 * @return bool
 	 */
 	public function isColumnNullable($name) {
-		return $this->getConfig()->get("column")->get($name)->get("nullable");
+		$cfg = $this->getConfig();
+		$cols = $cfg->get("column");
+		$col = $cols->get($name);
+		if (empty($col)) return true;
+		return $col->get("nullable");
 	}
 
 	/**
@@ -168,7 +172,7 @@ class OrmionMapper extends Object {
 	public function isPrimaryAutoIncrement() {
 		foreach ($this->getConfig()->get("key") as $key) {
 			if ($key->primary) {
-				return $key->autoIncrement === true;
+				return (bool) $key->autoIncrement;
 			}
 		}
 
@@ -243,7 +247,7 @@ class OrmionMapper extends Object {
 		}
 
 		if ($res) {
-			$res->setState(OrmionRecord::STATE_EXISTING);
+			$res->setState(OrmionRecord::STATE_EXISTING)->clearModified();
 		}
 
 		return $res;
@@ -260,9 +264,9 @@ class OrmionMapper extends Object {
 
 			$values = array();
 
-			foreach ($this->getColumnNames() as $name) {
-				if ($record->hasValue($name)) {
-					$values[$name] = $record->$name;
+			foreach ($this->getColumnNames() as $column) {
+				if ($record->hasValue($column)) {
+					$values[$column . "%" . $this->getColumnType($column)] = $record->$column;
 				}
 			}
 
@@ -295,9 +299,11 @@ class OrmionMapper extends Object {
 
 			$columns = array_intersect($this->getColumnNames(), $record->getModified());
 
-			$values = $record->getData($columns);
+			foreach ($columns as $column) {
+				$values[$column . "%" . $this->getColumnType($column)] = $record->$column;
+			}
 
-			if (!empty($values)) {
+			if (isset($values)) {
 				$this->getDb()
 					->update($this->table, $values)
 					->where($record->getData($this->getPrimaryColumns()))

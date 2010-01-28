@@ -52,14 +52,14 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 
 	// data
 
-	/** @var  */
+	/** @var ArrayObject */
 	private $data;
 
 	/** @var array */
-	private $defaults;
+	private $defaults = array();
 
 	/** @var array */
-	private $aliases;
+	private $aliases = array();
 
 	/** @var array */
 	private $modified = array();
@@ -67,7 +67,7 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	// state
 
 	/** @var int */
-	private $state = self::STATE_NEW;
+	private $state;
 
 	/**
 	 * Constructor
@@ -78,7 +78,6 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 
 		if ($data !== null) {
 			$this->setData($data);
-			$this->clearModified();
 		}
 	}
 
@@ -224,11 +223,40 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	}
 
 	/**
+	 * Is value modified
+	 * @param string $name
+	 * @return bool
+	 */
+	public function isValueModified($name) {
+		return isset($this->modified[$name]);
+	}
+
+	/**
 	 * Get state
 	 * @return int
 	 */
 	public function getState() {
-		return $this->state;
+		if (isset($this->state)) {
+			return $this->state;
+		}
+
+		return $this->detectState();
+	}
+
+	protected function detectState() {
+		$mapper = static::getMapper();
+
+		if ($mapper->isPrimaryAutoincrement()) {
+			if (isset($this[$mapper->getPrimaryColumn()])) {
+				return self::STATE_EXISTING;
+			} else {
+				return self::STATE_NEW;
+			}
+			
+		} else {
+			// TODO check in db
+			return self::STATE_NEW;
+		}
 	}
 
 	/**
@@ -361,10 +389,12 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 		$data = $this->getStorage();
 
 		if (isset($this->getters[$name])) {
-			return call_user_func($this->getters[$name], $data, $name);
+			$ret = call_user_func($this->getters[$name], $data, $name);
+			return $ret;
 		} else {
 			if (array_key_exists($name, $data)) {
-				return $data[$name];
+				$ret = $data[$name];
+				return $ret;
 			} elseif (array_key_exists($name, $this->defaults)) {
 				return $this->defaults[$name];
 			} else {
@@ -426,13 +456,47 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	 */
 	public function hasValue($name) {
 		$data = $this->getStorage()->getArrayCopy();
-		return array_key_exists($this->fixColumnName($name), $data);
+		return array_key_exists($this->fixColumnName($name), $data) || isset($this->defaults[$name]);
+	}
+
+		/**
+	 * Magic fetch.
+	 * - $row = $model->fetchByUrl('about-us');
+	 * - $arr = $model->fetchAllByCategoryIdAndVisibility(5, TRUE);
+	 *
+	 * @param  string
+	 * @param  array
+	 * @return OrmionRecord|false|OrmionRecordSet
+	 */
+	public static function __callStatic($name, $args) {
+		if (strncmp($name, 'findBy', 6) === 0) { // single row
+			$single = true;
+			$name = substr($name, 6);
+
+		} elseif (strncmp($name, 'findAllBy', 9) === 0) { // multi row
+			$single = false;
+			$name = substr($name, 9);
+
+		} else {
+			return parent::__callStatic($name, $args);
+		}
+
+		// ProductIdAndTitle -> array('product', 'title')
+		$parts = explode('_and_', strtolower(preg_replace('#(.)(?=[A-Z])#', '$1_', $name)));
+
+		if (count($parts) !== count($args)) {
+			throw new InvalidArgumentException("Magic fetch expects " . count($parts) . " parameters, but " . count($args) . " was given.");
+		}
+
+		$conditions = array_combine($parts, $args);
+
+		return $single ? static::find($conditions) : static::findAll($conditions);
 	}
 
 	// ArrayAccess
 
 	public function offsetExists($offset) {
-		$this->__isset($offset);
+		return $this->__isset($offset);
 	}
 
 	public function offsetGet($offset) {

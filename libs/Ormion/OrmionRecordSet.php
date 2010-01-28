@@ -32,7 +32,7 @@ class OrmionRecordSet extends LazyArrayList {
 		}
 
 		foreach ($res as &$row) {
-			$row->setState(OrmionRecord::STATE_EXISTING);
+			$row->setState(OrmionRecord::STATE_EXISTING)->clearModified();
 		}
 
 		$this->import($res);

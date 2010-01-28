@@ -170,8 +170,6 @@ class OrmionMapperTest extends BaseTest {
 
 		$page->allowed = true;
 
-		$this->assertEquals(array("allowed"), $page->getModified());
-
 		$this->assertEquals(OrmionRecord::STATE_NEW, $page->getState());
 
 		$this->object->insert($page);
