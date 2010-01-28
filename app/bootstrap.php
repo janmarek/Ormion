@@ -29,7 +29,7 @@ $application = Environment::getApplication();
 $application->errorPresenter = 'Error';
 //$application->catchExceptions = TRUE;
 
-OrmionMapper::addConnection(Environment::getConfig("database"));
+Ormion::addConnection(Environment::getConfig("database"));
 
 
 

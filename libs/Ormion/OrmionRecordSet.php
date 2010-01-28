@@ -26,7 +26,7 @@ class OrmionRecordSet extends LazyArrayList {
 	 */
 	protected function load() {
 		try {
-			OrmionMapper::log($this->fluent);
+			Ormion::log($this->fluent);
 			$res = $this->fluent->execute()->setRowClass($this->getItemType())->fetchAll();
 		} catch (Exception $e) {
 			throw new ModelException("Find query failed. " . $e->getMessage(), $e->getCode(), $e);
@@ -70,7 +70,7 @@ class OrmionRecordSet extends LazyArrayList {
 		} else {
 			$fluent = clone $this->fluent;
 			$fluent->select(false)->select("count(*)");
-			OrmionMapper::log($this->fluent);
+			Ormion::log($this->fluent);
 			return (int) $fluent->fetchSingle();
 		}
 	}

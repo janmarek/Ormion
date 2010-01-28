@@ -8,10 +8,8 @@
  */
 class OrmionMapper extends Object {
 
-	const DEFAULT_CONNECTION_NAME = "ormion";
-
 	/** @var string */
-	protected $dibiConnectionName = self::DEFAULT_CONNECTION_NAME;
+	protected $dibiConnectionName = Ormion::DEFAULT_CONNECTION_NAME;
 
 	/** @var string */
 	protected $table;
@@ -21,15 +19,6 @@ class OrmionMapper extends Object {
 
 	/** @var Config */
 	private $config;
-
-	/** @var bool */
-	public static $logSql = false;
-
-	/** @var ILogger */
-	private static $logger;
-
-	/** @var callback */
-	public static $loggerFactory = array(__CLASS__, "createLogger");
 
 	/**
 	 * Construct mapper
@@ -58,44 +47,11 @@ class OrmionMapper extends Object {
 	}
 
 	/**
-	 * Add connection
-	 * @param array|string|ArrayObject $config connection parameters
-	 * @param string $name connection name
-	 */
-	public static function addConnection($config, $name = self::DEFAULT_CONNECTION_NAME) {
-		dibi::connect($config, $name);
-	}
-
-	/**
 	 * Get dibi connection
 	 * @return DibiConnection
 	 */
 	public function getDb() {
 		return dibi::getConnection($this->dibiConnectionName);
-	}
-
-	/**
-	 * Create logger object
-	 * @return FileLogger
-	 */
-	public static function createLogger() {
-		return new FileLogger("ormionsql-%Y-%m-%d.log");
-	}
-
-	/**
-	 * Log message
-	 * @param mixed $message
-	 */
-	public static function log($message) {
-		if (!self::$logSql) {
-			return;
-		}
-
-		if (empty(self::$logger)) {
-			self::$logger = call_user_func(self::$loggerFactory);
-		}
-
-		self::$logger->logMessage(ILogger::INFO, (string) $message);
 	}
 
 	/**
@@ -274,7 +230,7 @@ class OrmionMapper extends Object {
 
 		try {
 			$fluent = $this->createFindFluent()->where($conditions)->limit(1);
-			self::log($fluent);
+			Ormion::log($fluent);
 			$res = $fluent->execute()->setRowClass($this->rowClass)->fetch();
 		} catch (Exception $e) {
 			throw new ModelException("Find query failed. " . $e->getMessage(), $e->getCode(), $e);
@@ -306,7 +262,7 @@ class OrmionMapper extends Object {
 
 			// do query
 			$fluent = $this->getDb()->insert($this->table, $values);
-			self::log($fluent);
+			Ormion::log($fluent);
 			$fluent->execute();
 
 			// fill auto increment primary key
@@ -344,7 +300,7 @@ class OrmionMapper extends Object {
 					->update($this->table, $values)
 					->where($record->getData($this->getPrimaryColumns()));
 
-				self::log($fluent);
+				Ormion::log($fluent);
 
 				$fluent->execute();
 
@@ -370,7 +326,7 @@ class OrmionMapper extends Object {
 				->delete($this->table)
 				->where($record->getData($this->getPrimaryColumns()));
 
-			self::log($fluent);
+			Ormion::log($fluent);
 
 			$fluent->execute();
 
