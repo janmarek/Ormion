@@ -22,6 +22,15 @@ class OrmionMapper extends Object {
 	/** @var Config */
 	private $config;
 
+	/** @var bool */
+	public static $logSql = false;
+
+	/** @var ILogger */
+	private static $logger;
+
+	/** @var callback */
+	public static $loggerFactory = array(__CLASS__, "createLogger");
+
 	/**
 	 * Construct mapper
 	 * @param string $table table name
@@ -63,6 +72,30 @@ class OrmionMapper extends Object {
 	 */
 	public function getDb() {
 		return dibi::getConnection($this->dibiConnectionName);
+	}
+
+	/**
+	 * Create logger object
+	 * @return FileLogger
+	 */
+	public static function createLogger() {
+		return new FileLogger("ormionsql-%Y-%m-%d.log");
+	}
+
+	/**
+	 * Log message
+	 * @param mixed $message
+	 */
+	public static function log($message) {
+		if (!self::$logSql) {
+			return;
+		}
+
+		if (empty(self::$logger)) {
+			self::$logger = call_user_func(self::$loggerFactory);
+		}
+
+		self::$logger->logMessage(ILogger::INFO, (string) $message);
 	}
 
 	/**
@@ -241,6 +274,7 @@ class OrmionMapper extends Object {
 
 		try {
 			$fluent = $this->createFindFluent()->where($conditions)->limit(1);
+			self::log($fluent);
 			$res = $fluent->execute()->setRowClass($this->rowClass)->fetch();
 		} catch (Exception $e) {
 			throw new ModelException("Find query failed. " . $e->getMessage(), $e->getCode(), $e);
@@ -271,7 +305,9 @@ class OrmionMapper extends Object {
 			}
 
 			// do query
-			$this->getDb()->insert($this->table, $values)->execute();
+			$fluent = $this->getDb()->insert($this->table, $values);
+			self::log($fluent);
+			$fluent->execute();
 
 			// fill auto increment primary key
 			if ($this->isPrimaryAutoIncrement()) {
@@ -304,10 +340,13 @@ class OrmionMapper extends Object {
 			}
 
 			if (isset($values)) {
-				$this->getDb()
+				$fluent = $this->getDb()
 					->update($this->table, $values)
-					->where($record->getData($this->getPrimaryColumns()))
-					->execute();
+					->where($record->getData($this->getPrimaryColumns()));
+
+				self::log($fluent);
+
+				$fluent->execute();
 
 				$record->clearModified();
 			}
@@ -327,10 +366,13 @@ class OrmionMapper extends Object {
 		try {
 			$record->onBeforeDelete($record);
 
-			$this->getDb()
+			$fluent = $this->getDb()
 				->delete($this->table)
-				->where($record->getData($this->getPrimaryColumns()))
-				->execute();
+				->where($record->getData($this->getPrimaryColumns()));
+
+			self::log($fluent);
+
+			$fluent->execute();
 
 			// set state
 			$record->setState(OrmionRecord::STATE_DELETED);
