@@ -4,6 +4,7 @@
  * OrmionRecord
  *
  * @author Jan Marek
+ * @license MIT
  */
 class OrmionRecord extends FreezableObject implements ArrayAccess {
 
@@ -71,20 +72,25 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 
 	/**
 	 * Constructor
-	 * @param array $data
+	 * @param array|int $data
 	 */
 	public function __construct($data = null) {
 		$this->init();
 
 		if ($data !== null) {
-			$this->setData($data);
+			if (is_scalar($data)) {
+				$pk = static::getMapper()->getPrimaryColumn();
+				$this->$pk = $data;
+			} else {
+				$this->setData($data);
+			}
 		}
 	}
 
 	/**
 	 * Create instance
 	 * @param array $data
-	 * @return Ormion
+	 * @return OrmionRecord
 	 */
 	public static function create($data = null) {
 		return new static($data);
@@ -101,7 +107,7 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	 * Get mapper
 	 * @return OrmionMapper
 	 */
-	protected static function getMapper() {
+	public static function getMapper() {
 		if (empty(static::$table)) {
 			throw new InvalidStateException("Unable to create mapper, table name is not set.");
 		}
@@ -112,6 +118,16 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 		}
 
 		return self::$mappers[static::$table];
+	}
+
+	/**
+	 * Add record behavior
+	 * @param IOrmionBehavior $behavior
+	 * @return OrmionRecord
+	 */
+	public function addBehavior(IOrmionBehavior $behavior) {
+		$behavior->setUp($this);
+		return $this;
 	}
 
 	/**
@@ -291,6 +307,30 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 		return $this;
 	}
 
+
+	public function loadValues($values = null) {
+		static::getMapper()->loadValues($this, $values);
+		return $this;
+	}
+
+	public function lazyLoadValues($values = null) {
+		// TODO: žádnej isset, hasValue
+
+		if ($values === null) {
+			$values = self::getMapper()->getColumnNames();
+		}
+
+		foreach ($values as $key => $value) {
+			if (!isset($this->$value)) {
+				$keys[] = $value;
+			}
+		}
+
+		if (isset($keys)) {
+			$this->loadValues($keys);
+		}
+	}
+
 	/**
 	 * Multiple getter
 	 * @param array $columns
@@ -392,6 +432,11 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 			$ret = call_user_func($this->getters[$name], $data, $name);
 			return $ret;
 		} else {
+			if (!array_key_exists($name, $data) && $this->getState() === self::STATE_EXISTING) {
+				// TODO: prevence proti znovunačítání (při neúspěchu)
+				$this->lazyLoadValues();
+			}
+
 			if (array_key_exists($name, $data)) {
 				$ret = $data[$name];
 				return $ret;
@@ -435,6 +480,8 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	 * @return bool
 	 */
 	public function __isset($name) {
+		// TODO: lazy loading?
+
 		$data = $this->getStorage();
 		return isset($data[$this->fixColumnName($name)]);
 	}
@@ -455,6 +502,8 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	 * @return bool
 	 */
 	public function hasValue($name) {
+		// TODO: lazy loading?
+		
 		$data = $this->getStorage()->getArrayCopy();
 		return array_key_exists($this->fixColumnName($name), $data) || isset($this->defaults[$name]);
 	}
@@ -491,6 +540,15 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 		$conditions = array_combine($parts, $args);
 
 		return $single ? static::find($conditions) : static::findAll($conditions);
+	}
+
+	/**
+	 * Create form from config
+	 * @param string $name
+	 * @return Form
+	 */
+	public static function createForm($name) {
+		return OrmionForm::create(static::getMapper()->getConfig()->get("form_" . $name));
 	}
 
 	// ArrayAccess

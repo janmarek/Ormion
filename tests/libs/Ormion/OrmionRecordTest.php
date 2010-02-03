@@ -17,8 +17,6 @@ class OrmionRecordTest extends BaseTest {
 	private $object;
 
 	protected function setUp() {
-		Ormion::$logSql = true;
-
 		$this->db = dibi::getConnection("ormion");
 		$this->db->delete("pages")->execute();
 		// id, name, description, text, created, allowed
@@ -144,6 +142,18 @@ class OrmionRecordTest extends BaseTest {
 	public function testGetException() {
 		$this->setExpectedException("MemberAccessException");
 		$this->object->nesmysl;
+	}
+
+	public function testLazyLoad() {
+		$id = $this->db->select("max(id)")->from("pages")->fetchSingle();
+
+		$page = new Page($id);
+		$this->assertEquals("Jinačí článek", $page->name);
+
+		$page2 = new Page;
+		var_dump($page2->getData());
+		$this->setExpectedException("InvalidStateException");
+		$page2->text;
 	}
 
 }

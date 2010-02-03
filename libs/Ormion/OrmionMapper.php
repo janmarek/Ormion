@@ -64,7 +64,7 @@ class OrmionMapper extends Object {
 			$filePath = $dir . "/" . $this->table . ".ini";
 			
 			if (file_exists($filePath)) {
-				$this->config = Config::fromFile($filePath);
+				$this->config = OrmionConfig::fromFile($filePath);
 			} else {
 				$this->config = $this->createConfig();
 				$this->config->save($filePath);
@@ -90,8 +90,8 @@ class OrmionMapper extends Object {
 			$arr["column"][$name]["nullable"] = $column->isNullable();
 
 			// form
-//			$arr["form"][$name]["element"] = "text";
-//			$arr["form"][$name]["label"] = $name;
+			$arr["form_modify"][$name]["type"] = "text";
+			$arr["form_modify"][$name]["label"] = $name;
 		}
 
 		foreach ($tableInfo->getPrimaryKey()->getColumns() as $column) {
@@ -100,11 +100,24 @@ class OrmionMapper extends Object {
 			$arr["key"][$name]["autoIncrement"] = $column->isAutoIncrement();
 			
 			// form
-//			$arr["form"][$name]["element"] = "hidden";
-//			unset($arr["form"][$name]["label"]);
+			$arr["form_modify"][$name]["type"] = "hidden";
+			unset($arr["form_modify"][$name]["label"]);
 		}
 
-		return new Config($arr);
+		if (isset($arr["form_modify"])) {
+			$arr["form_modify"]["s"] = array(
+				"type" => "submit",
+				"label" => "OK",
+			);
+
+			$arr["form_create"] = $arr["form_modify"];
+
+			foreach ($arr["key"] as $name => $item) {
+				unset($arr["form_create"][$name]);
+			}
+		}
+
+		return new OrmionConfig($arr);
 	}
 
 	// Reflection
@@ -230,7 +243,6 @@ class OrmionMapper extends Object {
 
 		try {
 			$fluent = $this->createFindFluent()->where($conditions)->limit(1);
-			Ormion::log($fluent);
 			$res = $fluent->execute()->setRowClass($this->rowClass)->fetch();
 		} catch (Exception $e) {
 			throw new ModelException("Find query failed. " . $e->getMessage(), $e->getCode(), $e);
@@ -241,6 +253,26 @@ class OrmionMapper extends Object {
 		}
 
 		return $res;
+	}
+
+	public function loadValues(OrmionRecord $record, $values = null) {
+		try {
+			$key = $record->getData($this->getPrimaryColumns());
+		} catch (MemberAccessException $e) {
+			throw new InvalidStateException("Key was not set.", null, $e);
+		}
+
+		$fluent = $this->createFindFluent();
+
+		if ($values !== null) {
+			$fluent->select(false)->select($values);
+		}
+
+		$fluent->where($key);
+
+		foreach ($fluent->fetch() as $key => $val) {
+			$record->$key = $val;
+		}
 	}
 
 
@@ -261,9 +293,7 @@ class OrmionMapper extends Object {
 			}
 
 			// do query
-			$fluent = $this->getDb()->insert($this->table, $values);
-			Ormion::log($fluent);
-			$fluent->execute();
+			$this->getDb()->insert($this->table, $values)->execute();
 
 			// fill auto increment primary key
 			if ($this->isPrimaryAutoIncrement()) {
@@ -296,13 +326,10 @@ class OrmionMapper extends Object {
 			}
 
 			if (isset($values)) {
-				$fluent = $this->getDb()
+				$this->getDb()
 					->update($this->table, $values)
-					->where($record->getData($this->getPrimaryColumns()));
-
-				Ormion::log($fluent);
-
-				$fluent->execute();
+					->where($record->getData($this->getPrimaryColumns()))
+					->execute();
 
 				$record->clearModified();
 			}
@@ -322,13 +349,10 @@ class OrmionMapper extends Object {
 		try {
 			$record->onBeforeDelete($record);
 
-			$fluent = $this->getDb()
+			$this->getDb()
 				->delete($this->table)
-				->where($record->getData($this->getPrimaryColumns()));
-
-			Ormion::log($fluent);
-
-			$fluent->execute();
+				->where($record->getData($this->getPrimaryColumns()))
+				->execute();
 
 			// set state
 			$record->setState(OrmionRecord::STATE_DELETED);

@@ -17,8 +17,6 @@ class OrmionMapperTest extends BaseTest {
 	private $object;
 
 	protected function setUp() {
-		Ormion::$logSql = true;
-
 		$this->db = dibi::getConnection("ormion");
 		$this->db->delete("pages")->execute();
 		// id, name, description, text, created, allowed
