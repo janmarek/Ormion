@@ -56,17 +56,22 @@ class OrmionMapper extends Object {
 
 	/**
 	 * Get table config
-	 * @return Config
+	 * @return OrmionConfig
 	 */
 	public function getConfig() {
 		if (empty($this->config)) {
+			// file path
 			$dir = Environment::getVariable("ormionConfigDir", APP_DIR . "/models/config");
 			$filePath = $dir . "/" . $this->table . ".ini";
-			
+
+			// existing file
 			if (file_exists($filePath)) {
 				$this->config = OrmionConfig::fromFile($filePath);
+
+			// create config
 			} else {
-				$this->config = $this->createConfig();
+				$tableInfo = $this->getDb()->getDatabaseInfo()->getTable($this->table);
+				$this->config = OrmionConfig::fromTableInfo($tableInfo);
 				$this->config->save($filePath);
 			}
 		}
@@ -74,141 +79,22 @@ class OrmionMapper extends Object {
 		return $this->config;
 	}
 
-	/**
-	 * Detects data types and keys from database
-	 * @return Config
-	 */
-	protected function createConfig() {
-		$tableInfo = $this->getDb()->getDatabaseInfo()->getTable($this->table);
 
-		$arr = array();
 
-		foreach ($tableInfo->getColumns() as $column) {
-			$name = $column->getName();
-			$arr["column"][$name]["isColumn"] = true;
-			$arr["column"][$name]["type"] = $column->getType();
-			$arr["column"][$name]["nullable"] = $column->isNullable();
+	public function detectState(OrmionRecord $record) {
+		$config = $this->getConfig();
 
-			// form
-			$arr["form_modify"][$name]["type"] = "text";
-			$arr["form_modify"][$name]["label"] = $name;
-		}
-
-		foreach ($tableInfo->getPrimaryKey()->getColumns() as $column) {
-			$name = $column->getName();
-			$arr["key"][$name]["primary"] = true;
-			$arr["key"][$name]["autoIncrement"] = $column->isAutoIncrement();
-			
-			// form
-			$arr["form_modify"][$name]["type"] = "hidden";
-			unset($arr["form_modify"][$name]["label"]);
-		}
-
-		if (isset($arr["form_modify"])) {
-			$arr["form_modify"]["s"] = array(
-				"type" => "submit",
-				"label" => "OK",
-			);
-
-			$arr["form_create"] = $arr["form_modify"];
-
-			foreach ($arr["key"] as $name => $item) {
-				unset($arr["form_create"][$name]);
+		if ($config->isPrimaryAutoincrement()) {
+			if (isset($record[$config->getPrimaryColumn()])) {
+				return OrmionRecord::STATE_EXISTING;
+			} else {
+				return OrmionRecord::STATE_NEW;
 			}
+
+		} else {
+			// TODO check in db
+			return OrmionRecord::STATE_NEW;
 		}
-
-		return new OrmionConfig($arr);
-	}
-
-	// Reflection
-
-	/**
-	 * Get column names
-	 * @return array
-	 */
-	public function getColumnNames() {
-		$arr = array();
-
-		$columns = $this->getConfig()->get("column");
-		foreach ($columns as $name => $column) {
-			if ($column->isColumn) {
-				$arr[] = $name;
-			}
-		}
-
-		return $arr;
-	}
-
-	/**
-	 * Get dibi type
-	 * @param string $name column name
-	 * @return string
-	 */
-	public function getColumnType($name) {
-		$column = $this->getConfig()->get("column")->get($name);
-		
-		if (empty($column)) {
-			return null;
-		}
-		
-		return $column->get("type");
-	}
-
-	/**
-	 * Is column nullable
-	 * @param string $name
-	 * @return bool
-	 */
-	public function isColumnNullable($name) {
-		$cfg = $this->getConfig();
-		$cols = $cfg->get("column");
-		$col = $cols->get($name);
-		if (empty($col)) return true;
-		return $col->get("nullable");
-	}
-
-	/**
-	 * Is primary key auto increment
-	 * @return bool
-	 */
-	public function isPrimaryAutoIncrement() {
-		foreach ($this->getConfig()->get("key") as $key) {
-			if ($key->primary) {
-				return (bool) $key->autoIncrement;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Get primary column names
-	 * @return array
-	 */
-	public function getPrimaryColumns() {
-		$arr = array();
-
-		foreach ($this->getConfig()->get("key") as $name => $key) {
-			if ($key->primary) {
-				$arr[] = $name;
-			}
-		}
-
-		return $arr;
-	}
-
-	/**
-	 * Get first primary column name
-	 * @return string
-	 */
-	public function getPrimaryColumn() {
-		foreach ($this->getConfig()->get("key") as $name => $key) {
-			if ($key->primary) {
-				return $name;
-			}
-		}
-
-		return null;
 	}
 
 	/**
@@ -237,7 +123,7 @@ class OrmionMapper extends Object {
 	public function find($conditions = array()) {
 		if (!is_array($conditions)) {
 			$conditions = array(
-				$this->getPrimaryColumn() => $conditions,
+				$this->getConfig()->getPrimaryColumn() => $conditions,
 			);
 		}
 
@@ -256,8 +142,10 @@ class OrmionMapper extends Object {
 	}
 
 	public function loadValues(OrmionRecord $record, $values = null) {
+		// TODO: ModelException místo DibiDriverException
+
 		try {
-			$key = $record->getData($this->getPrimaryColumns());
+			$key = $record->getData($this->getConfig()->getPrimaryColumns());
 		} catch (MemberAccessException $e) {
 			throw new InvalidStateException("Key was not set.", null, $e);
 		}
@@ -275,6 +163,22 @@ class OrmionMapper extends Object {
 		}
 	}
 
+	public function lazyLoadValues(OrmionRecord $record, $values = null) {
+		if ($values === null) {
+			$values = $this->getConfig()->getColumnNames();
+		}
+
+		foreach ($values as $key => $value) {
+			if (!$record->hasValue($value)) {
+				$missing[] = $value;
+			}
+		}
+
+		if (isset($missing)) {
+			$this->loadValues($record, $missing);
+		}
+	}
+
 
 	/**
 	 * Inser record into database
@@ -285,10 +189,12 @@ class OrmionMapper extends Object {
 			$record->onBeforeInsert($record);
 
 			$values = array();
+			
+			$config = $this->getConfig();
 
-			foreach ($this->getColumnNames() as $column) {
+			foreach ($config->getColumnNames() as $column) {
 				if ($record->hasValue($column)) {
-					$values[$column . "%" . $this->getColumnType($column)] = $record->$column;
+					$values[$column . "%" . $config->getColumnType($column)] = $record->$column;
 				}
 			}
 
@@ -296,8 +202,8 @@ class OrmionMapper extends Object {
 			$this->getDb()->insert($this->table, $values)->execute();
 
 			// fill auto increment primary key
-			if ($this->isPrimaryAutoIncrement()) {
-				$record[$this->getPrimaryColumn()] = $this->getDb()->getInsertId();
+			if ($config->isPrimaryAutoIncrement()) {
+				$record[$config->getPrimaryColumn()] = $this->getDb()->getInsertId();
 			}
 
 			// set state
@@ -319,16 +225,17 @@ class OrmionMapper extends Object {
 		try {
 			$record->onBeforeUpdate($record);
 
-			$columns = array_intersect($this->getColumnNames(), $record->getModified());
+			$config = $this->getConfig();
+			$columns = array_intersect($config->getColumnNames(), $record->getModified());
 
 			foreach ($columns as $column) {
-				$values[$column . "%" . $this->getColumnType($column)] = $record->$column;
+				$values[$column . "%" . $config->getColumnType($column)] = $record->$column;
 			}
 
 			if (isset($values)) {
 				$this->getDb()
 					->update($this->table, $values)
-					->where($record->getData($this->getPrimaryColumns()))
+					->where($record->getData($config->getPrimaryColumns()))
 					->execute();
 
 				$record->clearModified();
@@ -351,7 +258,7 @@ class OrmionMapper extends Object {
 
 			$this->getDb()
 				->delete($this->table)
-				->where($record->getData($this->getPrimaryColumns()))
+				->where($record->getData($this->getConfig()->getPrimaryColumns()))
 				->execute();
 
 			// set state

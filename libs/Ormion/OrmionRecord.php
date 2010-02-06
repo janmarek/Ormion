@@ -6,22 +6,20 @@
  * @author Jan Marek
  * @license MIT
  */
-class OrmionRecord extends FreezableObject implements ArrayAccess {
+abstract class OrmionRecord extends OrmionStorage {
 
 	const STATE_NEW = 1;
 	const STATE_EXISTING = 2;
 	const STATE_DELETED = 3;
 
-	// class variables
-
 	/** @var string */
 	protected static $mapperClass = "OrmionMapper";
 
 	/** @var string */
-	protected static $tableName;
+	protected static $table;
 
-	/** @var array */
-	protected static $mappers;
+	/** @var int */
+	private $state;
 
 	// events
 
@@ -43,33 +41,6 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	/** @var array */
 	public $onAfterDelete;
 
-	// callbacks
-
-	/** @var array */
-	private $setters;
-
-	/** @var array */
-	private $getters;
-
-	// data
-
-	/** @var ArrayObject */
-	private $data;
-
-	/** @var array */
-	private $defaults = array();
-
-	/** @var array */
-	private $aliases = array();
-
-	/** @var array */
-	private $modified = array();
-
-	// state
-
-	/** @var int */
-	private $state;
-
 	/**
 	 * Constructor
 	 * @param array|int $data
@@ -79,7 +50,7 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 
 		if ($data !== null) {
 			if (is_scalar($data)) {
-				$pk = static::getMapper()->getPrimaryColumn();
+				$pk = static::getMapper()->getConfig()->getPrimaryColumn();
 				$this->$pk = $data;
 			} else {
 				$this->setData($data);
@@ -103,21 +74,26 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 
 	}
 
+	public static function getTable() {
+		if (empty(static::$table)) {
+			throw new InvalidStateException("Table name is not set.");
+		}
+
+		return static::$table;
+	}
+
+	public static function getMapperClass() {
+		return static::$mapperClass;
+	}
+
 	/**
 	 * Get mapper
 	 * @return OrmionMapper
 	 */
 	public static function getMapper() {
-		if (empty(static::$table)) {
-			throw new InvalidStateException("Unable to create mapper, table name is not set.");
-		}
-
-		if (empty(self::$mappers[static::$table])) {
-			$class = static::$mapperClass;
-			self::$mappers[static::$table] = new $class(static::$table, get_called_class());
-		}
-
-		return self::$mappers[static::$table];
+		// TODO: non static?
+		// TODO: method getConfig?
+		return Ormion::getMapper(get_called_class());
 	}
 
 	/**
@@ -125,39 +101,40 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	 * @param IOrmionBehavior $behavior
 	 * @return OrmionRecord
 	 */
-	public function addBehavior(IOrmionBehavior $behavior) {
+	public function addBehavior(IBehavior $behavior) {
 		$behavior->setUp($this);
 		return $this;
 	}
 
 	/**
-	 * Set callback for setting values
-	 * @param string $name
-	 * @param callback $callback php callback
-	 * @return Ormion
+	 * Get state
+	 * @return int
 	 */
-	public function registerSetter($name, $callback) {
-		if (!is_callable($callback)) {
-			throw new InvalidArgumentException("Argument is not callable.");
+	public function getState() {
+		if (isset($this->state)) {
+			return $this->state;
 		}
 
-		$this->setters[$name] = $callback;
+		return static::getMapper()->detectState($this);
+	}
+
+	/**
+	 * Set state
+	 * @param int $state
+	 * @return OrmionRecord
+	 */
+	public function setState($state) {
+		$this->state = $state;
 		return $this;
 	}
 
 	/**
-	 * Set callback for getting values
+	 * Create form from config
 	 * @param string $name
-	 * @param callback $callback php callback
-	 * @return Ormion
+	 * @return Form
 	 */
-	public function registerGetter($name, $callback) {
-		if (!is_callable($callback)) {
-			throw new InvalidArgumentException("Argument is not callable.");
-		}
-
-		$this->getters[$name] = $callback;
-		return $this;
+	public static function createForm($name) {
+		return OrmionForm::create(static::getMapper()->getConfig()->getForm($name));
 	}
 
 	/**
@@ -176,6 +153,40 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	 */
 	public static function findAll($conditions = array()) {
 		return static::getMapper()->findAll($conditions);
+	}
+
+	/**
+	 * Magic fetch.
+	 * - $row = $model->fetchByUrl('about-us');
+	 * - $arr = $model->fetchAllByCategoryIdAndVisibility(5, TRUE);
+	 *
+	 * @param  string
+	 * @param  array
+	 * @return OrmionRecord|false|OrmionRecordSet
+	 */
+	public static function __callStatic($name, $args) {
+		if (strncmp($name, 'findBy', 6) === 0) { // single row
+			$single = true;
+			$name = substr($name, 6);
+
+		} elseif (strncmp($name, 'findAllBy', 9) === 0) { // multi row
+			$single = false;
+			$name = substr($name, 9);
+
+		} else {
+			return parent::__callStatic($name, $args);
+		}
+
+		// ProductIdAndTitle -> array('product', 'title')
+		$parts = explode('_and_', strtolower(preg_replace('#(.)(?=[A-Z])#', '$1_', $name)));
+
+		if (count($parts) !== count($args)) {
+			throw new InvalidArgumentException("Magic fetch expects " . count($parts) . " parameters, but " . count($args) . " was given.");
+		}
+
+		$conditions = array_combine($parts, $args);
+
+		return $single ? static::find($conditions) : static::findAll($conditions);
 	}
 
 	/**
@@ -211,102 +222,6 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 		return $this;
 	}
 
-	/**
-	 * Get data storage
-	 * @return ArrayObject
-	 */
-	protected function getStorage() {
-		if (empty($this->data)) {
-			$this->data = new ArrayObject(array());
-		}
-		
-		return $this->data;
-	}
-
-	/**
-	 * Set all values as unmodified
-	 */
-	public function clearModified() {
-		$this->modified = array();
-	}
-
-	/**
-	 * Get modified column names
-	 * @return array
-	 */
-	public function getModified() {
-		return array_keys($this->modified);
-	}
-
-	/**
-	 * Is value modified
-	 * @param string $name
-	 * @return bool
-	 */
-	public function isValueModified($name) {
-		return isset($this->modified[$name]);
-	}
-
-	/**
-	 * Get state
-	 * @return int
-	 */
-	public function getState() {
-		if (isset($this->state)) {
-			return $this->state;
-		}
-
-		return $this->detectState();
-	}
-
-	protected function detectState() {
-		$mapper = static::getMapper();
-
-		if ($mapper->isPrimaryAutoincrement()) {
-			if (isset($this[$mapper->getPrimaryColumn()])) {
-				return self::STATE_EXISTING;
-			} else {
-				return self::STATE_NEW;
-			}
-			
-		} else {
-			// TODO check in db
-			return self::STATE_NEW;
-		}
-	}
-
-	/**
-	 * Set state
-	 * @param int $state
-	 * @return OrmionRecord
-	 */
-	public function setState($state) {
-		$this->state = $state;
-		return $this;
-	}
-
-	/**
-	 * Set default value
-	 * @param string $name
-	 * @param mixed $value
-	 * @return OrmionRecord
-	 */
-	public function setDefaultValue($name, $value) {
-		$this->defaults[$name] = $value;
-		return $this;
-	}
-
-	/**
-	 * Set alias
-	 * @param string $alias
-	 * @param string $name
-	 * @return OrmionRecord
-	 */
-	public function setAlias($alias, $name) {
-		$this->aliases[$alias] = $name;
-		return $this;
-	}
-
 
 	public function loadValues($values = null) {
 		static::getMapper()->loadValues($this, $values);
@@ -314,71 +229,8 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 	}
 
 	public function lazyLoadValues($values = null) {
-		// TODO: žádnej isset, hasValue
-
-		if ($values === null) {
-			$values = self::getMapper()->getColumnNames();
-		}
-
-		foreach ($values as $key => $value) {
-			if (!isset($this->$value)) {
-				$keys[] = $value;
-			}
-		}
-
-		if (isset($keys)) {
-			$this->loadValues($keys);
-		}
-	}
-
-	/**
-	 * Multiple getter
-	 * @param array $columns
-	 * @return array
-	 */
-	public function getData($columns = null) {
-		if ($columns === null) {
-			$columns = array_unique(
-				array_merge(
-					array_keys($this->getStorage()->getArrayCopy()),
-					array_keys($this->defaults)
-				)
-			);
-		}
-
-		$arr = array();
-
-		foreach ($columns as $column) {
-			$arr[$column] = $this->__get($column);
-		}
-
-		return $arr;
-	}
-
-	/**
-	 * Multiple setter
-	 * @param array $data
-	 * @return OrmionRecord
-	 */
-	public function setData($data) {
-		foreach ($data as $key => $value) {
-			$this->__set($key, $value);
-		}
-
+		static::getMapper()->lazyLoadValues($this, $values);
 		return $this;
-	}
-
-	/**
-	 * Normalize column name (replace alias)
-	 * @param string $name
-	 * @return string
-	 */
-	protected function fixColumnName($name) {
-		if (isset($this->aliases[$name])) {
-			return $this->aliases[$name];
-		}
-
-		return $name;
 	}
 
 	/**
@@ -418,155 +270,16 @@ class OrmionRecord extends FreezableObject implements ArrayAccess {
 		}
 	}
 
-	/**
-	 * Magic getter for field value, do not call directly
-	 * @param string $name
-	 * @return mixed
-	 */
-	public function & __get($name) {
-		$name = $this->fixColumnName($name);
-
-		$data = $this->getStorage();
-
-		if (isset($this->getters[$name])) {
-			$ret = call_user_func($this->getters[$name], $data, $name);
-			return $ret;
-		} else {
-			if (!array_key_exists($name, $data) && $this->getState() === self::STATE_EXISTING) {
-				// TODO: prevence proti znovunačítání (při neúspěchu)
-				$this->lazyLoadValues();
-			}
-
-			if (array_key_exists($name, $data)) {
-				$ret = $data[$name];
-				return $ret;
-			} elseif (array_key_exists($name, $this->defaults)) {
-				return $this->defaults[$name];
-			} else {
-				throw new MemberAccessException("Value '$name' was not set.");
-			}
-		}
-	}
-
-	/**
-	 * Magic setter for field value, do not call directly
-	 * @param string $name
-	 * @param mixed $value
-	 */
 	public function __set($name, $value) {
-		$this->updating();
-
 		$name = $this->fixColumnName($name);
+		$config = static::getMapper()->getConfig();
+		$type = $config->getColumnType($name);
 
-		if (isset($this->setters[$name])) {
-			call_user_func($this->setters[$name], $this->getStorage(), $name, $value);
-		} else {
-			$data = $this->getStorage();
-			$mapper = static::getMapper();
-
-			if ($value === null && $mapper->isColumnNullable($name)) {
-				$data[$name] = null;
-			} else {
-				$data[$name] = $this->convertValue($value, $mapper->getColumnType($name));
-			}
-
-			$this->modified[$name] = true;
+		if ($type && !($value === null && $config->isColumnNullable($name))) {
+			$value = $this->convertValue($value, $type);
 		}
-	}
-
-	/**
-	 * Magic isset, do not call directly
-	 * @param string $name
-	 * @return bool
-	 */
-	public function __isset($name) {
-		// TODO: lazy loading?
-
-		$data = $this->getStorage();
-		return isset($data[$this->fixColumnName($name)]);
-	}
-
-	/**
-	 * Magic unset, do not call directly
-	 * @param string $name
-	 */
-	public function __unset($name) {
-		$this->updating();
-		$data = $this->getStorage();
-		unset($data[$this->fixColumnName($name)]);
-	}
-
-	/**
-	 * Is value set?
-	 * @param string $name
-	 * @return bool
-	 */
-	public function hasValue($name) {
-		// TODO: lazy loading?
 		
-		$data = $this->getStorage()->getArrayCopy();
-		return array_key_exists($this->fixColumnName($name), $data) || isset($this->defaults[$name]);
-	}
-
-		/**
-	 * Magic fetch.
-	 * - $row = $model->fetchByUrl('about-us');
-	 * - $arr = $model->fetchAllByCategoryIdAndVisibility(5, TRUE);
-	 *
-	 * @param  string
-	 * @param  array
-	 * @return OrmionRecord|false|OrmionRecordSet
-	 */
-	public static function __callStatic($name, $args) {
-		if (strncmp($name, 'findBy', 6) === 0) { // single row
-			$single = true;
-			$name = substr($name, 6);
-
-		} elseif (strncmp($name, 'findAllBy', 9) === 0) { // multi row
-			$single = false;
-			$name = substr($name, 9);
-
-		} else {
-			return parent::__callStatic($name, $args);
-		}
-
-		// ProductIdAndTitle -> array('product', 'title')
-		$parts = explode('_and_', strtolower(preg_replace('#(.)(?=[A-Z])#', '$1_', $name)));
-
-		if (count($parts) !== count($args)) {
-			throw new InvalidArgumentException("Magic fetch expects " . count($parts) . " parameters, but " . count($args) . " was given.");
-		}
-
-		$conditions = array_combine($parts, $args);
-
-		return $single ? static::find($conditions) : static::findAll($conditions);
-	}
-
-	/**
-	 * Create form from config
-	 * @param string $name
-	 * @return Form
-	 */
-	public static function createForm($name) {
-		return OrmionForm::create(static::getMapper()->getConfig()->get("form_" . $name));
-	}
-
-	// ArrayAccess
-
-	public function offsetExists($offset) {
-		return $this->__isset($offset);
-	}
-
-	public function offsetGet($offset) {
-		return $this->__get($offset);
-	}
-
-	public function offsetSet($offset, $value) {
-		$this->__set($offset, $value);
-	}
-
-	public function offsetUnset($offset) {
-		$this->__unset($offset);
+		parent::__set($name, $value);
 	}
 
 }

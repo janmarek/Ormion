@@ -6,7 +6,7 @@
  * @author Jan Marek
  * @license MIT
  */
-class HashableBehavior extends Object implements IOrmionBehavior {
+class HashableBehavior extends Object implements IBehavior {
 
 	/** @var string */
 	private $column;

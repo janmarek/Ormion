@@ -6,7 +6,7 @@
  * @author Jan Marek
  * @license MIT
  */
-class TimestampableBehavior extends Object implements IOrmionBehavior {
+class TimestampableBehavior extends Object implements IBehavior {
 
 	/** @var string|null */
 	private $created;
