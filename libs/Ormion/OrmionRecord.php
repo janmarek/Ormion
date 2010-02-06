@@ -1,16 +1,12 @@
 <?php
 
 /**
- * OrmionRecord
+ * Ormion record
  *
  * @author Jan Marek
  * @license MIT
  */
-abstract class OrmionRecord extends OrmionStorage {
-
-	const STATE_NEW = 1;
-	const STATE_EXISTING = 2;
-	const STATE_DELETED = 3;
+abstract class OrmionRecord extends OrmionStorage implements IRecord {
 
 	/** @var string */
 	protected static $mapperClass = "OrmionMapper";
@@ -88,7 +84,7 @@ abstract class OrmionRecord extends OrmionStorage {
 
 	/**
 	 * Get mapper
-	 * @return OrmionMapper
+	 * @return IMapper
 	 */
 	public static function getMapper() {
 		// TODO: non static?
@@ -149,7 +145,7 @@ abstract class OrmionRecord extends OrmionStorage {
 	/**
 	 * Find all records
 	 * @param array $conditions
-	 * @return OrmionDataSet
+	 * @return OrmionCollection
 	 */
 	public static function findAll($conditions = array()) {
 		return static::getMapper()->findAll($conditions);
@@ -162,7 +158,7 @@ abstract class OrmionRecord extends OrmionStorage {
 	 *
 	 * @param  string
 	 * @param  array
-	 * @return OrmionRecord|false|OrmionRecordSet
+	 * @return OrmionRecord|false|OrmionCollection
 	 */
 	public static function __callStatic($name, $args) {
 		if (strncmp($name, 'findBy', 6) === 0) { // single row

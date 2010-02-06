@@ -43,6 +43,8 @@ class OrmionConfig extends Object {
 	 */
 	public static function fromTableInfo(DibiTableInfo $tableInfo) {
 		// TODO form jen nějaký defaultní, stejnak se musí před použitím upravit
+		// TODO formuláře generovat volitelně
+		// TODO generovat required
 
 		$arr = array();
 

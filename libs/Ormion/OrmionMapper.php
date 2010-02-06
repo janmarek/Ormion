@@ -6,7 +6,7 @@
  * @author Jan Marek
  * @license MIT
  */
-class OrmionMapper extends Object {
+class OrmionMapper extends Object implements IMapper {
 
 	/** @var string */
 	protected $dibiConnectionName = Ormion::DEFAULT_CONNECTION_NAME;
@@ -81,19 +81,19 @@ class OrmionMapper extends Object {
 
 
 
-	public function detectState(OrmionRecord $record) {
+	public function detectState(IRecord $record) {
 		$config = $this->getConfig();
 
 		if ($config->isPrimaryAutoincrement()) {
 			if (isset($record[$config->getPrimaryColumn()])) {
-				return OrmionRecord::STATE_EXISTING;
+				return IRecord::STATE_EXISTING;
 			} else {
-				return OrmionRecord::STATE_NEW;
+				return IRecord::STATE_NEW;
 			}
 
 		} else {
 			// TODO check in db
-			return OrmionRecord::STATE_NEW;
+			return IRecord::STATE_NEW;
 		}
 	}
 
@@ -108,17 +108,17 @@ class OrmionMapper extends Object {
 	/**
 	 * Find all results
 	 * @param array $conditions
-	 * @return OrmionRecordSet
+	 * @return OrmionCollection
 	 */
 	public function findAll($conditions = array()) {
 		$fluent = $this->createFindFluent()->where($conditions);
-		return new OrmionRecordSet($fluent, $this->rowClass);
+		return new OrmionCollection($fluent, $this->rowClass);
 	}
 
 	/**
 	 * Find one result
 	 * @param array|int $conditions
-	 * @return OrmionRecord|false
+	 * @return IRecord|false
 	 */
 	public function find($conditions = array()) {
 		if (!is_array($conditions)) {
@@ -135,13 +135,13 @@ class OrmionMapper extends Object {
 		}
 
 		if ($res) {
-			$res->setState(OrmionRecord::STATE_EXISTING)->clearModified();
+			$res->setState(IRecord::STATE_EXISTING)->clearModified();
 		}
 
 		return $res;
 	}
 
-	public function loadValues(OrmionRecord $record, $values = null) {
+	public function loadValues(IRecord $record, $values = null) {
 		// TODO: ModelException místo DibiDriverException
 
 		try {
@@ -163,7 +163,7 @@ class OrmionMapper extends Object {
 		}
 	}
 
-	public function lazyLoadValues(OrmionRecord $record, $values = null) {
+	public function lazyLoadValues(IRecord $record, $values = null) {
 		if ($values === null) {
 			$values = $this->getConfig()->getColumnNames();
 		}
@@ -182,9 +182,9 @@ class OrmionMapper extends Object {
 
 	/**
 	 * Inser record into database
-	 * @param OrmionRecord $record
+	 * @param IRecord $record
 	 */
-	public function insert(OrmionRecord $record) {
+	public function insert(IRecord $record) {
 		try {
 			$record->onBeforeInsert($record);
 
@@ -207,7 +207,7 @@ class OrmionMapper extends Object {
 			}
 
 			// set state
-			$record->setState(OrmionRecord::STATE_EXISTING);
+			$record->setState(IRecord::STATE_EXISTING);
 			$record->clearModified();
 
 			$record->onAfterInsert($record);
@@ -219,9 +219,9 @@ class OrmionMapper extends Object {
 
 	/**
 	 * Update record
-	 * @param OrmionRecord $record
+	 * @param IRecord $record
 	 */
-	public function update(OrmionRecord $record) {
+	public function update(IRecord $record) {
 		try {
 			$record->onBeforeUpdate($record);
 
@@ -250,9 +250,9 @@ class OrmionMapper extends Object {
 
 	/**
 	 * Delete record
-	 * @param OrmionRecord $record
+	 * @param IRecord $record
 	 */
-	public function delete(OrmionRecord $record) {
+	public function delete(IRecord $record) {
 		try {
 			$record->onBeforeDelete($record);
 
@@ -262,7 +262,7 @@ class OrmionMapper extends Object {
 				->execute();
 
 			// set state
-			$record->setState(OrmionRecord::STATE_DELETED);
+			$record->setState(IRecord::STATE_DELETED);
 
 			$record->onAfterDelete($this);
 

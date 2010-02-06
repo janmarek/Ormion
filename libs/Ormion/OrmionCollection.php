@@ -6,7 +6,7 @@
  * @author Jan Marek
  * @license MIT
  */
-class OrmionRecordSet extends LazyArrayList {
+class OrmionCollection extends LazyArrayList {
 
 	/** @var DibiFluent */
 	private $fluent;
@@ -32,7 +32,7 @@ class OrmionRecordSet extends LazyArrayList {
 		}
 
 		foreach ($res as &$row) {
-			$row->setState(OrmionRecord::STATE_EXISTING)->clearModified();
+			$row->setState(IRecord::STATE_EXISTING)->clearModified();
 		}
 
 		$this->import($res);
@@ -42,7 +42,7 @@ class OrmionRecordSet extends LazyArrayList {
 	 * Change DibiFluent
 	 * @param string $name
 	 * @param array $args
-	 * @return OrmionRecordSet
+	 * @return OrmionCollection
 	 */
 	public function __call($name, $args) {
 		// TODO vyrobit konkrétní funkce

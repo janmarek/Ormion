@@ -26,18 +26,18 @@ class HashableBehavior extends Object implements IBehavior {
 
 	/**
 	 * Set up behavior
-	 * @param OrmionRecord $record
+	 * @param IRecord $record
 	 */
-	public function setUp(OrmionRecord $record) {
+	public function setUp(IRecord $record) {
 		$record->onBeforeUpdate[] = array($this, "hashColumn");
 		$record->onBeforeInsert[] = array($this, "hashColumn");
 	}
 
 	/**
 	 * Hash specified column with specified hash function
-	 * @param OrmionRecord $record
+	 * @param IRecord $record
 	 */
-	public function hashColumn(OrmionRecord $record) {
+	public function hashColumn(IRecord $record) {
 		if ($record->isValueModified($this->column)) {
 			$record->{$this->column} = call_user_func($this->hashFunction, $record->{$this->column});
 		}

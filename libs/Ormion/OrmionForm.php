@@ -26,6 +26,8 @@ class OrmionForm extends Object {
 	 * @return AppForm
 	 */
 	public static function create($config) {
+		// TODO generovat základní validaci, alespoň required
+
 		$form = new self::$formClass;
 		
 		foreach ($config as $key => $item) {

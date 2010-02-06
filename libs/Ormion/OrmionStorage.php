@@ -95,7 +95,7 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 	 * Set default value
 	 * @param string $name
 	 * @param mixed $value
-	 * @return OrmionRecord
+	 * @return OrmionStorage
 	 */
 	public function setDefaultValue($name, $value) {
 		$this->defaults[$name] = $value;
@@ -106,7 +106,7 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 	 * Set alias
 	 * @param string $alias
 	 * @param string $name
-	 * @return OrmionRecord
+	 * @return OrmionStorage
 	 */
 	public function setAlias($alias, $name) {
 		$this->aliases[$alias] = $name;
@@ -140,7 +140,7 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 	/**
 	 * Multiple setter
 	 * @param array $data
-	 * @return OrmionRecord
+	 * @return OrmionStorage
 	 */
 	public function setData($data) {
 		foreach ($data as $key => $value) {

@@ -25,10 +25,10 @@ class TimestampableBehavior extends Object implements IBehavior {
 	}
 
 	/**
-	 * Set up behavior
-	 * @param OrmionRecord $record
+	 * Setup behavior
+	 * @param IRecord $record
 	 */
-	public function setUp(OrmionRecord $record) {
+	public function setUp(IRecord $record) {
 		if (isset($this->created)) {
 			$record->onBeforeInsert[] = array($this, "updateCreated");
 		}
@@ -38,11 +38,11 @@ class TimestampableBehavior extends Object implements IBehavior {
 		}
 	}
 
-	public function updateCreated(OrmionRecord $record) {
+	public function updateCreated(IRecord $record) {
 		$record->{$this->created} = time();
 	}
 
-	public function updateUpdated(OrmionRecord $record) {
+	public function updateUpdated(IRecord $record) {
 		$record->{$this->updated} = time();
 	}
 }

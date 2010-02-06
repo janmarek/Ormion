@@ -47,7 +47,7 @@ final class Ormion extends Object {
 
 	/**
 	 * Get mapper
-	 * @return OrmionMapper
+	 * @return IMapper
 	 */
 	public static function getMapper($recordClass) {
 		if (empty(self::$mappers[$recordClass])) {
