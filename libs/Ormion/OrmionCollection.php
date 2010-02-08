@@ -11,6 +11,7 @@ class OrmionCollection extends LazyArrayList {
 	/** @var DibiFluent */
 	private $fluent;
 
+	
 	/**
 	 * Construct
 	 * @param DibiFluent $fluent
@@ -20,6 +21,7 @@ class OrmionCollection extends LazyArrayList {
 		parent::__construct(null, $rowClass);
 		$this->fluent = $fluent;
 	}
+
 
 	/**
 	 * Load items
@@ -38,6 +40,7 @@ class OrmionCollection extends LazyArrayList {
 		$this->import($res);
 	}
 
+
 	/**
 	 * Change DibiFluent
 	 * @param string $name
@@ -45,11 +48,11 @@ class OrmionCollection extends LazyArrayList {
 	 * @return OrmionCollection
 	 */
 	public function __call($name, $args) {
-		// TODO vyrobit konkrétní funkce
 		call_user_func_array(array($this->fluent, $name), $args);
 		$this->setLoaded(false);
 		return $this;
 	}
+
 
 	/**
 	 * Get DibiDataSource object
@@ -58,6 +61,16 @@ class OrmionCollection extends LazyArrayList {
 	public function toDataSource() {
 		return $this->fluent->toDataSource();
 	}
+
+
+	/**
+	 * Get DibiFluent object
+	 * @return DibiDataSource
+	 */
+	public function toFluent() {
+		return $this->fluent;
+	}
+
 
 	/**
 	 * Count items in collection
@@ -68,11 +81,15 @@ class OrmionCollection extends LazyArrayList {
 			return parent::count();
 		} else {
 			$fluent = clone $this->fluent;
-			$fluent->select(false)->select("count(*)");
+			$fluent->removeClause("select")->select("count(*)");
 			return (int) $fluent->fetchSingle();
 		}
 	}
-	
+
+
+	/**
+	 * Freeze collection
+	 */
 	public function freeze() {
 		foreach ($this as &$item) {
 			$item->freeze();

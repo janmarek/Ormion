@@ -1,15 +1,12 @@
 <?php
 
-
-require __DIR__ . "/../../BaseTest.php";
-
 /**
- * Test class for OrmionRecordSet
+ * Test class for OrmionCollection
  *
  * @backupStaticAttributes disabled
  * @backupGlobals disabled
  */
-class OrmionMapperTest extends BaseTest {
+class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 
 	/** @var DibiConnection */
 	private $db;
@@ -44,7 +41,7 @@ class OrmionMapperTest extends BaseTest {
 		));
 
 		$fluent = $this->db->select("*")->from("pages");
-		$this->object = new OrmionRecordSet($fluent, "MockRecord");
+		$this->object = new OrmionCollection($fluent, "MockRecord");
 	}
 
 	protected function tearDown() {

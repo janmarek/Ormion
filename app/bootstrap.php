@@ -32,7 +32,6 @@ $application->errorPresenter = 'Error';
 Ormion::addConnection(Environment::getConfig("database"));
 
 
-
 // Step 4: Setup application router
 $router = $application->getRouter();
 
