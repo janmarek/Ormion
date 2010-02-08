@@ -242,9 +242,7 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 	 * @return bool
 	 */
 	public function hasValue($name) {
-		// TODO: lazy loading?
-		// TODO: brát defaults?
-		// TODO: přidělat isValueLoaded nebo tak něco?
+		// TODO: brát defaults nebo přidělat další metodu?
 
 		$data = $this->getStorage()->getArrayCopy();
 		return array_key_exists($this->fixColumnName($name), $data) || isset($this->defaults[$name]);

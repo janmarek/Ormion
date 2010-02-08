@@ -4,12 +4,20 @@
  * Ormion config
  *
  * @author Jan Marek
+ * @license MIT
+ *
+ * @todo isColumn nepovinné (default true)
+ * @todo nullable nepovinné (default true)
  */
 class OrmionConfig extends Object {
+
+	/** @var bool */
+	public static $generateForms = true;
 
 	/** @var array */
 	private $data;
 
+	
 	/**
 	 * Constructor
 	 * @param array $data
@@ -17,6 +25,7 @@ class OrmionConfig extends Object {
 	public function __construct($data) {
 		$this->data = $data;
 	}
+
 
 	/**
 	 * Save config to ini file
@@ -28,6 +37,7 @@ class OrmionConfig extends Object {
 		return $this;
 	}
 
+
 	/**
 	 * Create config from ini file
 	 * @param string $file
@@ -37,53 +47,67 @@ class OrmionConfig extends Object {
 		return new self(ConfigAdapterIni::load($file));
 	}
 
+
 	/**
 	 * Create OrmionConfig from database table info
 	 * @return OrmionConfig
 	 */
 	public static function fromTableInfo(DibiTableInfo $tableInfo) {
-		// TODO form jen nějaký defaultní, stejnak se musí před použitím upravit
-		// TODO formuláře generovat volitelně
-		// TODO generovat required
-
-		$arr = array();
-
+		// columns
 		foreach ($tableInfo->getColumns() as $column) {
 			$name = $column->getName();
-			$arr["column"][$name]["isColumn"] = true;
 			$arr["column"][$name]["type"] = $column->getType();
-			$arr["column"][$name]["nullable"] = $column->isNullable();
 
-			// form
-			$arr["form_modify"][$name]["type"] = "text";
-			$arr["form_modify"][$name]["label"] = $name;
+			if ($column->isNullable()) {
+				$arr["column"][$name]["nullable"] = true;
+			}
 		}
 
+		// keys
 		foreach ($tableInfo->getPrimaryKey()->getColumns() as $column) {
 			$name = $column->getName();
 			$arr["key"][$name]["primary"] = true;
 			$arr["key"][$name]["autoIncrement"] = $column->isAutoIncrement();
-
-			// form
-			$arr["form_modify"][$name]["type"] = "hidden";
-			unset($arr["form_modify"][$name]["label"]);
 		}
 
-		if (isset($arr["form_modify"])) {
-			$arr["form_modify"]["s"] = array(
+		// form
+		if (self::$generateForms) {
+			foreach ($arr["column"] as $name => $column) {
+				// key
+				if (isset($arr["key"][$name])) {
+					$arr["form_default"][$name]["type"] = "hidden";
+
+				// regular column
+				} else {
+					$arr["form_default"][$name]["type"] = "text";
+					$arr["form_default"][$name]["label"] = $name;
+
+					if (empty($column["nullable"])) {
+						$arr["form_default"][$name]["validation"]["required"] = true;
+					}
+				}
+			}
+
+			// submit button
+			$arr["form_default"]["s"] = array(
 				"type" => "submit",
 				"label" => "OK",
 			);
-
-			$arr["form_create"] = $arr["form_modify"];
-
-			foreach ($arr["key"] as $name => $item) {
-				unset($arr["form_create"][$name]);
-			}
 		}
 
 		return new self($arr);
 	}
+
+
+	/**
+	 * Get column
+	 * @param string $name
+	 * @return array
+	 */
+	private function getColumn($name) {
+		return isset($this->data["column"][$name]) ? $this->data["column"][$name] : null;
+	}
+
 
 	/**
 	 * Get column names
@@ -93,7 +117,7 @@ class OrmionConfig extends Object {
 		$arr = array();
 
 		foreach ($this->data["column"] as $name => $column) {
-			if ($column["isColumn"]) {
+			if (!(isset($column["column"]) && $column["column"] == false)) {
 				$arr[] = $name;
 			}
 		}
@@ -101,20 +125,17 @@ class OrmionConfig extends Object {
 		return $arr;
 	}
 
+
 	/**
 	 * Get dibi type
 	 * @param string $name column name
 	 * @return string
 	 */
 	public function getColumnType($name) {
-		$column = $this->data["column"][$name];
-
-		if (empty($column)) {
-			return null;
-		}
-
-		return $column["type"];
+		$column = $this->getColumn($name);
+		return $column ? $column["type"] : null;
 	}
+
 
 	/**
 	 * Is column nullable
@@ -122,8 +143,10 @@ class OrmionConfig extends Object {
 	 * @return bool
 	 */
 	public function isColumnNullable($name) {
-		return empty($this->data["column"][$name]) ? true : $this->data["column"][$name]["nullable"];
+		$column = $this->getColumn($name);
+		return isset($column["nullable"]) ? (bool) $column["nullable"] : false;
 	}
+
 
 	/**
 	 * Is primary key auto increment
@@ -138,6 +161,7 @@ class OrmionConfig extends Object {
 
 		return false;
 	}
+
 
 	/**
 	 * Get primary column names
@@ -155,6 +179,7 @@ class OrmionConfig extends Object {
 		return $arr;
 	}
 
+
 	/**
 	 * Get first primary column name
 	 * @return string
@@ -169,8 +194,16 @@ class OrmionConfig extends Object {
 		return null;
 	}
 
+
+	/**
+	 * Get form configuration
+	 * @param string $name
+	 * @return array
+	 */
 	public function getForm($name) {
-		// TODO: exception
+		if (empty($this->data["form_$name"])) {
+			throw new InvalidArgumentException("Form with name '$name' does not exist.");
+		}
 
 		return $this->data["form_$name"];
 	}
