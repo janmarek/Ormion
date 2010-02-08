@@ -5,9 +5,6 @@
  *
  * @author Jan Marek
  * @license MIT
- *
- * @todo isColumn nepovinné (default true)
- * @todo nullable nepovinné (default true)
  */
 class OrmionConfig extends Object {
 
