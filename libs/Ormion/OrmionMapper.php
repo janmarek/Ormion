@@ -20,6 +20,7 @@ class OrmionMapper extends Object implements IMapper {
 	/** @var Config */
 	private $config;
 
+	
 	/**
 	 * Construct mapper
 	 * @param string $table table name
@@ -30,6 +31,7 @@ class OrmionMapper extends Object implements IMapper {
 		$this->rowClass = $rowClass;
 	}
 
+
 	/**
 	 * Get table name
 	 * @return string
@@ -37,6 +39,7 @@ class OrmionMapper extends Object implements IMapper {
 	public function getTable() {
 		return $this->table;
 	}
+
 
 	/**
 	 * Get row class name
@@ -46,6 +49,7 @@ class OrmionMapper extends Object implements IMapper {
 		return $this->rowClass;
 	}
 
+
 	/**
 	 * Get dibi connection
 	 * @return DibiConnection
@@ -53,6 +57,7 @@ class OrmionMapper extends Object implements IMapper {
 	public function getDb() {
 		return dibi::getConnection($this->dibiConnectionName);
 	}
+
 
 	/**
 	 * Get table config
@@ -80,7 +85,11 @@ class OrmionMapper extends Object implements IMapper {
 	}
 
 
-
+	/**
+	 * Detect record state
+	 * @param IRecord $record
+	 * @return int
+	 */
 	public function detectState(IRecord $record) {
 		$config = $this->getConfig();
 
@@ -97,6 +106,7 @@ class OrmionMapper extends Object implements IMapper {
 		}
 	}
 
+
 	/**
 	 * Create base DibiFluent for find
 	 * @return DibiFluent
@@ -104,6 +114,7 @@ class OrmionMapper extends Object implements IMapper {
 	protected function createFindFluent() {
 		return $this->getDb()->select("*")->from($this->table);
 	}
+
 
 	/**
 	 * Find all results
@@ -114,6 +125,7 @@ class OrmionMapper extends Object implements IMapper {
 		$fluent = $this->createFindFluent()->where($conditions);
 		return new OrmionCollection($fluent, $this->rowClass);
 	}
+
 
 	/**
 	 * Find one result
@@ -141,11 +153,17 @@ class OrmionMapper extends Object implements IMapper {
 		return $res;
 	}
 
+	
+	/**
+	 * Load values into record
+	 * @param IRecord $record
+	 * @param array $values value names
+	 */
 	public function loadValues(IRecord $record, $values = null) {
 		// TODO: ModelException místo DibiDriverException
 
 		try {
-			$key = $record->getData($this->getConfig()->getPrimaryColumns());
+			$key = $record->getValues($this->getConfig()->getPrimaryColumns());
 		} catch (MemberAccessException $e) {
 			throw new InvalidStateException("Key was not set.", null, $e);
 		}
@@ -160,22 +178,6 @@ class OrmionMapper extends Object implements IMapper {
 
 		foreach ($fluent->fetch() as $key => $val) {
 			$record->$key = $val;
-		}
-	}
-
-	public function lazyLoadValues(IRecord $record, $values = null) {
-		if ($values === null) {
-			$values = $this->getConfig()->getColumnNames();
-		}
-
-		foreach ($values as $key => $value) {
-			if (!$record->hasValue($value)) {
-				$missing[] = $value;
-			}
-		}
-
-		if (isset($missing)) {
-			$this->loadValues($record, $missing);
 		}
 	}
 
@@ -217,6 +219,7 @@ class OrmionMapper extends Object implements IMapper {
 		}
 	}
 
+
 	/**
 	 * Update record
 	 * @param IRecord $record
@@ -235,7 +238,7 @@ class OrmionMapper extends Object implements IMapper {
 			if (isset($values)) {
 				$this->getDb()
 					->update($this->table, $values)
-					->where($record->getData($config->getPrimaryColumns()))
+					->where($record->getValues($config->getPrimaryColumns()))
 					->execute();
 
 				$record->clearModified();
@@ -248,6 +251,7 @@ class OrmionMapper extends Object implements IMapper {
 		}
 	}
 
+
 	/**
 	 * Delete record
 	 * @param IRecord $record
@@ -258,7 +262,7 @@ class OrmionMapper extends Object implements IMapper {
 
 			$this->getDb()
 				->delete($this->table)
-				->where($record->getData($this->getConfig()->getPrimaryColumns()))
+				->where($record->getValues($this->getConfig()->getPrimaryColumns()))
 				->execute();
 
 			// set state

@@ -1,14 +1,12 @@
 <?php
 
-require __DIR__ . "/../../BaseTest.php";
-
 /**
  * Test class for OrmionMapper
  *
  * @backupStaticAttributes disabled
  * @backupGlobals disabled
  */
-class OrmionMapperTest extends BaseTest {
+class OrmionMapperTest extends PHPUnit_Framework_TestCase {
 
 	/** @var DibiConnection */
 	private $db;
@@ -56,58 +54,7 @@ class OrmionMapperTest extends BaseTest {
 	}
 
 	public function testGetConfig() {
-		$this->assertType("Config", $this->object->getConfig());
-	}
-
-	public function testConfigAutoDetect() {
-		$cfg = $this->object->getConfig();
-
-		// columns
-
-		$columns = $cfg->get("column");
-		$this->assertType("Config", $columns);
-
-		$this->assertEquals(6, count($columns));
-
-		$id = $columns->get("id");
-		$this->assertType("Config", $id);
-
-		$this->assertTrue($id->get("isColumn"));
-		$this->assertFalse($id->get("nullable"));
-		$this->assertEquals(dibi::INTEGER, $id->get("type"));
-
-		$this->assertTrue($columns->get("description")->get("nullable"));
-		$this->assertEquals(dibi::TEXT, $columns->get("description")->get("type"));
-
-		$this->assertEquals(dibi::TIME, $columns->get("created")->get("type"));
-
-		// keys
-
-		$keys = $cfg->get("key");
-		$this->assertType("Config", $keys);
-
-		$id = $keys->get("id");
-		$this->assertType("Config", $id);
-
-		$this->assertTrue($id->get("primary"));
-		$this->assertTrue($id->get("autoIncrement"));
-	}
-
-	public function testGetColumnNames() {
-		$expected = array("id", "name", "description", "text", "created", "allowed");
-		$this->assertEquals($expected, $this->object->getColumnNames());
-	}
-
-	public function testGetColumnType() {
-		$this->assertEquals(dibi::INTEGER, $this->object->getColumnType("id"));
-		$this->assertEquals(dibi::TEXT, $this->object->getColumnType("text"));
-		$this->assertEquals(null, $this->object->getColumnType("nesmysl"));
-	}
-
-	public function testIsPrimaryAutoIncrement() {
-		$this->assertTrue($this->object->isPrimaryAutoIncrement());
-		$mapper = new OrmionMapper("connections", null);
-		$this->assertFalse($mapper->isPrimaryAutoIncrement());
+		$this->assertType("OrmionConfig", $this->object->getConfig());
 	}
 
 	public function testFind() {
@@ -156,7 +103,7 @@ class OrmionMapperTest extends BaseTest {
 
 	public function testFindAll() {
 		$set = $this->object->findAll($conditions);
-		$this->assertType("OrmionRecordSet", $set);
+		$this->assertType("OrmionCollection", $set);
 		$this->assertFalse($set->isLoaded());
 		$this->assertEquals("Page", $set->getItemType());
 	}

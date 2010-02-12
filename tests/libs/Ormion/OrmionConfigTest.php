@@ -12,7 +12,7 @@ class OrmionConfigTest extends PHPUnit_Framework_TestCase {
 	/** @var OrmionConfig */
 	private $object;
 
-	public function setUp() {
+	protected function setUp() {
 		$this->object = new OrmionConfig(array(
 			"column" => array(
 				"id" => array(

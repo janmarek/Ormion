@@ -5,10 +5,10 @@
  *
  * @author Jan Marek
  */
-abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
+class OrmionStorage extends FreezableObject implements ArrayAccess, IteratorAggregate {
 
 	/** @var ArrayObject */
-	private $data;
+	private $values;
 
 	/** @var array */
 	private $defaults = array();
@@ -20,52 +20,114 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 	private $modified = array();
 
 	/** @var array */
-	private $setters;
+	private $setters = array();
 
 	/** @var array */
-	private $getters;
+	private $getters = array();
+
+	/** @var array */
+	private $inputFilters = array();
+
+	/** @var array */
+	private $outputFilters = array();
+
+
+	/**
+	 * Constructor
+	 * @param array|int $data
+	 */
+	public function __construct($data = null) {
+		$this->init();
+
+		$this->values = new ArrayObject($this->defaults);
+
+		if ($data !== null) {
+			$this->setValues($data);
+		}
+	}
+
+
+	/**
+	 * User initialization, can be overriden
+	 */
+	protected function init() {
+
+	}
+
 
 	/**
 	 * Set callback for setting values
 	 * @param string $name
 	 * @param callback $callback php callback
-	 * @return Ormion
+	 * @return OrmionStorage
 	 */
 	public function registerSetter($name, $callback) {
 		if (!is_callable($callback)) {
 			throw new InvalidArgumentException("Argument is not callable.");
 		}
 
-		$this->setters[$name] = $callback;
+		$this->setters[$this->fixName($name)] = $callback;
 		return $this;
 	}
+
 
 	/**
 	 * Set callback for getting values
 	 * @param string $name
 	 * @param callback $callback php callback
-	 * @return Ormion
+	 * @return OrmionStorage
 	 */
 	public function registerGetter($name, $callback) {
 		if (!is_callable($callback)) {
 			throw new InvalidArgumentException("Argument is not callable.");
 		}
 
-		$this->getters[$name] = $callback;
+		$this->getters[$this->fixName($name)] = $callback;
 		return $this;
 	}
+
+
+	/**
+	 * Add input filter
+	 * @param string $name
+	 * @param callback $callback php callback
+	 * @return OrmionStorage
+	 */
+	public function addInputFilter($name, $callback) {
+		if (!is_callable($callback)) {
+			throw new InvalidArgumentException("Argument is not callable.");
+		}
+
+		$this->inputFilters[$this->fixName($name)][] = $callback;
+		return $this;
+	}
+
+
+	/**
+	 * Add output filter
+	 * @param string $name
+	 * @param callback $callback php callback
+	 * @return OrmionStorage
+	 */
+	public function addOutputFilter($name, $callback) {
+		if (!is_callable($callback)) {
+			throw new InvalidArgumentException("Argument is not callable.");
+		}
+
+		$this->outputFilters[$this->fixName($name)][] = $callback;
+		return $this;
+	}
+
 
 	/**
 	 * Get data storage
 	 * @return ArrayObject
+	 * @deprecated
 	 */
 	public function getStorage() {
-		if (empty($this->data)) {
-			$this->data = new ArrayObject(array());
-		}
-
-		return $this->data;
+		return $this->values;
 	}
+
 
 	/**
 	 * Set all values as unmodified
@@ -74,6 +136,7 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 		$this->modified = array();
 	}
 
+
 	/**
 	 * Get modified column names
 	 * @return array
@@ -81,6 +144,7 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 	public function getModified() {
 		return array_keys($this->modified);
 	}
+
 
 	/**
 	 * Is value modified
@@ -91,6 +155,7 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 		return isset($this->modified[$name]);
 	}
 
+
 	/**
 	 * Set default value
 	 * @param string $name
@@ -98,9 +163,11 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 	 * @return OrmionStorage
 	 */
 	public function setDefaultValue($name, $value) {
-		$this->defaults[$name] = $value;
+		// todo vyhazovat výjimku když je pozdě
+		$this->defaults[$this->fixName($name)] = $value;
 		return $this;
 	}
+
 
 	/**
 	 * Set alias
@@ -113,17 +180,18 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 		return $this;
 	}
 
+
 	/**
 	 * Multiple getter
 	 * @param array $columns
 	 * @return array
 	 */
-	public function getData($columns = null) {
+	public function getValues($columns = null) {
 		if ($columns === null) {
 			$columns = array_unique(
 				array_merge(
-					array_keys($this->getStorage()->getArrayCopy()),
-					array_keys($this->defaults)
+					array_keys((array) $this->values),
+					array_keys($this->getters)
 				)
 			);
 		}
@@ -137,12 +205,13 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 		return $arr;
 	}
 
+
 	/**
 	 * Multiple setter
 	 * @param array $data
 	 * @return OrmionStorage
 	 */
-	public function setData($data) {
+	public function setValues($data) {
 		foreach ($data as $key => $value) {
 			$this->__set($key, $value);
 		}
@@ -150,12 +219,13 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 		return $this;
 	}
 
+
 	/**
 	 * Normalize column name (replace alias)
 	 * @param string $name
 	 * @return string
 	 */
-	protected function fixColumnName($name) {
+	protected function fixName($name) {
 		if (isset($this->aliases[$name])) {
 			return $this->aliases[$name];
 		}
@@ -163,35 +233,38 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 		return $name;
 	}
 
+
 	/**
 	 * Magic getter for field value, do not call directly
 	 * @param string $name
 	 * @return mixed
 	 */
 	public function & __get($name) {
-		$name = $this->fixColumnName($name);
-
-		$data = $this->getStorage();
+		$name = $this->fixName($name);
 
 		if (isset($this->getters[$name])) {
 			$ret = call_user_func($this->getters[$name], $this, $name);
 			return $ret;
+			
 		} else {
-			if (!array_key_exists($name, $data) && $this->getState() === self::STATE_EXISTING) {
-				// TODO: prevence proti znovunačítání (při neúspěchu) - stačí MemberAccess?
-				$this->lazyLoadValues();
-			}
+			if (array_key_exists($name, $this->values)) {
+				$ret = $this->values[$name];
 
-			if (array_key_exists($name, $data)) {
-				$ret = $data[$name];
+				// output filters
+				if (isset($this->outputFilters[$name])) {
+					foreach ($this->outputFilters[$name] as $filter) {
+						$ret = call_user_func($filter, $ret);
+					}
+				}
+
 				return $ret;
-			} elseif (array_key_exists($name, $this->defaults)) {
-				return $this->defaults[$name];
+
 			} else {
 				throw new MemberAccessException("Value '$name' was not set.");
 			}
 		}
 	}
+
 
 	/**
 	 * Magic setter for field value, do not call directly
@@ -201,17 +274,24 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 	public function __set($name, $value) {
 		$this->updating();
 
-		$name = $this->fixColumnName($name);
-		$data = $this->getStorage();
+		$name = $this->fixName($name);
 
 		if (isset($this->setters[$name])) {
-			// TODO modified i v tomto případě? asi jo..
 			call_user_func($this->setters[$name], $this, $name, $value);
 		} else {
-			$data[$name] = $value;
-			$this->modified[$name] = true;
+			// input filters
+			if (isset($this->inputFilters[$name])) {
+				foreach ($this->inputFilters[$name] as $filter) {
+					$value = call_user_func($filter, $value);
+				}
+			}
+
+			$this->values[$name] = $value;
 		}
+
+		$this->modified[$name] = true;
 	}
+
 
 	/**
 	 * Magic isset, do not call directly
@@ -219,12 +299,9 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 	 * @return bool
 	 */
 	public function __isset($name) {
-		// TODO: lazy loading?
-		// callbackované záležitostě? !
-
-		$data = $this->getStorage();
-		return isset($data[$this->fixColumnName($name)]);
+		return isset($this->values[$this->fixName($name)]);
 	}
+
 
 	/**
 	 * Magic unset, do not call directly
@@ -232,9 +309,9 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 	 */
 	public function __unset($name) {
 		$this->updating();
-		$data = $this->getStorage();
-		unset($data[$this->fixColumnName($name)]);
+		unset($this->values[$this->fixName($name)]);
 	}
+
 
 	/**
 	 * Is value set?
@@ -242,11 +319,9 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 	 * @return bool
 	 */
 	public function hasValue($name) {
-		// TODO: brát defaults nebo přidělat další metodu?
-
-		$data = $this->getStorage()->getArrayCopy();
-		return array_key_exists($this->fixColumnName($name), $data) || isset($this->defaults[$name]);
+		return array_key_exists($this->fixName($name), $this->values);
 	}
+
 
 	// ArrayAccess
 
@@ -254,17 +329,26 @@ abstract class OrmionStorage extends FreezableObject implements ArrayAccess {
 		return $this->__isset($offset);
 	}
 
+
 	public function offsetGet($offset) {
 		return $this->__get($offset);
 	}
+
 
 	public function offsetSet($offset, $value) {
 		$this->__set($offset, $value);
 	}
 
+
 	public function offsetUnset($offset) {
 		$this->__unset($offset);
 	}
 
+	
+	// IteratorAggregate
+
+	public function getIterator() {
+		return new ArrayIterator($this->getValues());
+	}
 	
 }

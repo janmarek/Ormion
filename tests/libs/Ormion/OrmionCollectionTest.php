@@ -41,7 +41,7 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 		));
 
 		$fluent = $this->db->select("*")->from("pages");
-		$this->object = new OrmionCollection($fluent, "MockRecord");
+		$this->object = new OrmionCollection($fluent, "Page");
 	}
 
 	protected function tearDown() {
@@ -72,7 +72,7 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 		// test result
 		$i = 0;
 		foreach ($this->object as $item) {
-			$this->assertEquals("0", $item->allowed);
+			$this->assertEquals(0, $item->allowed);
 			$i++;
 		}
 
@@ -107,35 +107,6 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 		$this->setExpectedException("ModelException");
 		$this->object->orderBy("nesmysl");
 		$this->object[0]; // init
-	}
-
-}
-
-class MockRecord extends FreezableObject {
-
-	private $state = OrmionRecord::STATE_NEW;
-
-	private $data;
-
-	public function __construct($data) {
-		$this->data = $data;
-	}
-
-	public function getState() {
-		return $this->state;
-	}
-
-	public function setState($state) {
-		$this->state = $state;
-		return $this;
-	}
-
-	public function & __get($name) {
-		return $this->data[$name];
-	}
-
-	public function clearModified() {
-		return $this;
 	}
 
 }
