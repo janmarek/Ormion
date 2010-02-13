@@ -194,9 +194,9 @@ class OrmionMapper extends Object implements IMapper {
 			
 			$config = $this->getConfig();
 
-			foreach ($config->getColumnNames() as $column) {
+			foreach ($config->getColumns() as $column) {
 				if ($record->hasValue($column)) {
-					$values[$column . "%" . $config->getColumnType($column)] = $record->$column;
+					$values[$column . "%" . $config->getType($column)] = $record->$column;
 				}
 			}
 
@@ -229,10 +229,10 @@ class OrmionMapper extends Object implements IMapper {
 			$record->onBeforeUpdate($record);
 
 			$config = $this->getConfig();
-			$columns = array_intersect($config->getColumnNames(), $record->getModified());
+			$columns = array_intersect($config->getColumns(), $record->getModified());
 
 			foreach ($columns as $column) {
-				$values[$column . "%" . $config->getColumnType($column)] = $record->$column;
+				$values[$column . "%" . $config->getType($column)] = $record->$column;
 			}
 
 			if (isset($values)) {

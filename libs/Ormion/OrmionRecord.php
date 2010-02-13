@@ -45,7 +45,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	public function __construct($data = null) {
 		if (is_scalar($data)) {
 			parent::__construct();
-			$this->{static::getConfig()->getPrimaryColumn()} = $data;
+			$this->{$this->getConfig()->getPrimaryColumn()} = $data;
 		} else {
 			parent::__construct($data);
 		}
@@ -88,7 +88,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	 * Get mapper
 	 * @return IMapper
 	 */
-	protected static function getMapper() {
+	public static function getMapper() {
 		return Ormion::getMapper(get_called_class());
 	}
 
@@ -97,7 +97,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	 * Get config
 	 * @return OrmionConfig
 	 */
-	protected static function getConfig() {
+	public static function getConfig() {
 		return static::getMapper()->getConfig();
 	}
 	
@@ -122,7 +122,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 			return $this->state;
 		}
 
-		return static::getMapper()->detectState($this);
+		return $this->getMapper()->detectState($this);
 	}
 
 
@@ -152,7 +152,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	 * @return mixed
 	 */
 	public function getPrimary() {
-		$primaryColumns = static::getConfig()->getPrimaryColumns();
+		$primaryColumns = $this->getConfig()->getPrimaryColumns();
 		if (count($primaryColumns) == 1) {
 			return $this->{$primaryColumns[0]};
 		} else {
@@ -233,11 +233,11 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 				break;
 
 			case self::STATE_EXISTING:
-				static::getMapper()->update($this);
+				$this->getMapper()->update($this);
 				break;
 
 			case self::STATE_NEW:
-				static::getMapper()->insert($this);
+				$this->getMapper()->insert($this);
 				break;
 		}
 
@@ -250,7 +250,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	 * @return OrmionRecord
 	 */
 	public function delete() {
-		static::getMapper()->delete($this);
+		$this->getMapper()->delete($this);
 		return $this;
 	}
 
@@ -261,7 +261,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	 * @return OrmionRecord
 	 */
 	public function loadValues($values = null) {
-		static::getMapper()->loadValues($this, $values);
+		$this->getMapper()->loadValues($this, $values);
 		return $this;
 	}
 
@@ -273,7 +273,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	 */
 	public function lazyLoadValues($values = null) {
 		if ($values === null) {
-			$values = static::getConfig()->getColumnNames();
+			$values = $this->getConfig()->getColumns();
 		}
 
 		foreach ($values as $value) {
@@ -332,14 +332,15 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 
 	public function __set($name, $value) {
 		$name = $this->fixName($name);
-		$config = static::getConfig();
-		$value = $this->convertValue($value, $config->getColumnType($name), $config->isColumnNullable($name));
+		$config = $this->getConfig();
+		$value = $this->convertValue($value, $config->getType($name), $config->isNullable($name));
 		parent::__set($name, $value);
 	}
 
 	public function & __get($name) {
-		// TODO: možná nějaké if isColumn
-		if ($this->getState() === self::STATE_EXISTING && !parent::hasValue($name)) {
+		$name = $this->fixName($name);
+
+		if ($this->getState() === self::STATE_EXISTING && !parent::hasValue($name) && $this->getConfig()->isColumn($name)) {
 			$this->lazyLoadValues();
 		}
 

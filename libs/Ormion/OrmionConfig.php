@@ -110,11 +110,11 @@ class OrmionConfig extends Object {
 	 * Get column names
 	 * @return array
 	 */
-	public function getColumnNames() {
+	public function getColumns() { // getColumns ?
 		$arr = array();
 
 		foreach ($this->data["column"] as $name => $column) {
-			if (!(isset($column["column"]) && $column["column"] == false)) {
+			if ($this->isColumn($name)) {
 				$arr[] = $name;
 			}
 		}
@@ -124,11 +124,21 @@ class OrmionConfig extends Object {
 
 
 	/**
+	 * Is real column
+	 * @param string $name column name
+	 * @return bool
+	 */
+	public function isColumn($name) {
+		return !(isset($this->data["column"][$name]["column"]) && $this->data["column"][$name]["column"] == false);
+	}
+
+
+	/**
 	 * Get dibi type
 	 * @param string $name column name
 	 * @return string
 	 */
-	public function getColumnType($name) {
+	public function getType($name) {
 		$column = $this->getColumn($name);
 		return $column ? $column["type"] : null;
 	}
@@ -139,7 +149,7 @@ class OrmionConfig extends Object {
 	 * @param string $name
 	 * @return bool
 	 */
-	public function isColumnNullable($name) {
+	public function isNullable($name) {
 		$column = $this->getColumn($name);
 		return isset($column["nullable"]) ? (bool) $column["nullable"] : false;
 	}

@@ -79,17 +79,17 @@ class OrmionConfigTest extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals(
 			array("id", "name", "description", "text", "created", "allowed"),
-			$cfg->getColumnNames()
+			$cfg->getColumns()
 		);
 
 
-		$this->assertEquals(dibi::INTEGER, $cfg->getColumnType("id"));
-		$this->assertEquals(dibi::TIME, $cfg->getColumnType("created"));
+		$this->assertEquals(dibi::INTEGER, $cfg->getType("id"));
+		$this->assertEquals(dibi::TIME, $cfg->getType("created"));
 
 
-		$this->assertTrue($cfg->isColumnNullable("description"));
-		$this->assertFalse($cfg->isColumnNullable("text"));
-		$this->assertFalse($cfg->isColumnNullable("name"));
+		$this->assertTrue($cfg->isNullable("description"));
+		$this->assertFalse($cfg->isNullable("text"));
+		$this->assertFalse($cfg->isNullable("name"));
 		
 		$this->assertTrue($cfg->isPrimaryAutoIncrement());
 
@@ -127,26 +127,26 @@ class OrmionConfigTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testGetColumnNames() {
+	public function testGetColumns() {
 		$this->assertEquals(
 			array("id", "name", "description", "text", "created", "allowed"),
-			$this->object->getColumnNames()
+			$this->object->getColumns()
 		);
 	}
 
 
-	public function testGetColumnType() {
-		$this->assertEquals(dibi::INTEGER, $this->object->getColumnType("id"));
-		$this->assertEquals(dibi::INTEGER, $this->object->getColumnType("number"));
-		$this->assertEquals(dibi::TIME, $this->object->getColumnType("created"));
-		$this->assertEquals(null, $this->object->getColumnType("nesmysl"));
+	public function testGetType() {
+		$this->assertEquals(dibi::INTEGER, $this->object->getType("id"));
+		$this->assertEquals(dibi::INTEGER, $this->object->getType("number"));
+		$this->assertEquals(dibi::TIME, $this->object->getType("created"));
+		$this->assertEquals(null, $this->object->getType("nesmysl"));
 	}
 
 	
-	public function testIsColumnNullable() {
-		$this->assertTrue($this->object->isColumnNullable("description"));
-		$this->assertFalse($this->object->isColumnNullable("text"));
-		$this->assertFalse($this->object->isColumnNullable("name"));
+	public function testIsNullable() {
+		$this->assertTrue($this->object->isNullable("description"));
+		$this->assertFalse($this->object->isNullable("text"));
+		$this->assertFalse($this->object->isNullable("name"));
 	}
 
 
