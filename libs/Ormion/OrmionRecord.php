@@ -104,7 +104,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 
 	/**
 	 * Add record behavior
-	 * @param IOrmionBehavior $behavior
+	 * @param IBehavior $behavior
 	 * @return OrmionRecord
 	 */
 	public function addBehavior(IBehavior $behavior) {
