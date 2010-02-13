@@ -29,7 +29,7 @@ $application = Environment::getApplication();
 $application->errorPresenter = 'Error';
 //$application->catchExceptions = TRUE;
 
-Ormion::addConnection(Environment::getConfig("database"));
+Ormion::connect(Environment::getConfig("database"));
 
 
 // Step 4: Setup application router

@@ -244,25 +244,22 @@ class OrmionStorage extends FreezableObject implements ArrayAccess, IteratorAggr
 
 		if (isset($this->getters[$name])) {
 			$ret = call_user_func($this->getters[$name], $this, $name);
-			return $ret;
-			
 		} else {
 			if (array_key_exists($name, $this->values)) {
 				$ret = $this->values[$name];
-
-				// output filters
-				if (isset($this->outputFilters[$name])) {
-					foreach ($this->outputFilters[$name] as $filter) {
-						$ret = call_user_func($filter, $ret);
-					}
-				}
-
-				return $ret;
-
 			} else {
 				throw new MemberAccessException("Value '$name' was not set.");
 			}
 		}
+
+		// output filters
+		if (isset($this->outputFilters[$name])) {
+			foreach ($this->outputFilters[$name] as $filter) {
+				$ret = call_user_func($filter, $ret);
+			}
+		}
+
+		return $ret;
 	}
 
 
@@ -273,19 +270,19 @@ class OrmionStorage extends FreezableObject implements ArrayAccess, IteratorAggr
 	 */
 	public function __set($name, $value) {
 		$this->updating();
-
+		
 		$name = $this->fixName($name);
+
+		// input filters
+		if (isset($this->inputFilters[$name])) {
+			foreach ($this->inputFilters[$name] as $filter) {
+				$value = call_user_func($filter, $value);
+			}
+		}
 
 		if (isset($this->setters[$name])) {
 			call_user_func($this->setters[$name], $this, $name, $value);
 		} else {
-			// input filters
-			if (isset($this->inputFilters[$name])) {
-				foreach ($this->inputFilters[$name] as $filter) {
-					$value = call_user_func($filter, $value);
-				}
-			}
-
 			$this->values[$name] = $value;
 		}
 

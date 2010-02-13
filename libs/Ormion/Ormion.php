@@ -27,7 +27,7 @@ final class Ormion extends Object {
 	 * @param array|string|ArrayObject $config connection parameters
 	 * @param string $name connection name
 	 */
-	public static function addConnection($config, $name = self::DEFAULT_CONNECTION_NAME) {
+	public static function connect($config, $name = self::DEFAULT_CONNECTION_NAME) {
 		dibi::connect($config, $name);
 	}
 
@@ -36,12 +36,19 @@ final class Ormion extends Object {
 	 * Enable SQL logger
 	 * @param string $path path to log file
 	 */
-	public static function enableSqlLogger($path = null) {
-		if ($path === null) {
-			$path = Environment::getVariable("%logDir%") . "/ormion-sql-" . date("Y-m-d") . ".sql";
+	public static function enableProfiler($filePath = null, $connectionName = self::DEFAULT_CONNECTION_NAME) {
+		$profiler = new DibiProfiler;
+
+		if ($filePath !== false) {
+			if ($filePath === null) {
+				$filePath = Environment::getVariable("logDir") . "/ormion-" . date("Y-m-d") . ".sql";
+			}
+			
+			$profiler->setFile($filePath);
+			$profiler->useFirebug = false;
 		}
 
-		dibi::getProfiler()->setFile($path);
+		dibi::getConnection($connectionName)->setProfiler($profiler);
 	}
 
 

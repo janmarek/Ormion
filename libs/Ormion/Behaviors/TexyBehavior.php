@@ -40,7 +40,7 @@ class TexyBehavior extends Object implements IBehavior {
 	 */
 	public function setUp(IRecord $record) {
 		$record->registerGetter($this->name, array($this, "getHtml"));
-		$record->onAfterUpdate[] = array($this, "clearCacheIfModified");
+		$record->onBeforeUpdate[] = array($this, "clearCacheIfModified");
 		$record->onAfterDelete[] = array($this, "clearCache");
 	}
 
@@ -65,8 +65,8 @@ class TexyBehavior extends Object implements IBehavior {
 	 * @return string
 	 */
 	public function getHtml(IRecord $record) {
-		$cache = $this->getCache();
-		$key = get_class($record) . "/" . $this->name;
+		$cache = Environment::getCache(__CLASS__ . "-" . get_class($record) . "-" . $this->name);
+		$key = $record->getPrimary();
 
 		if (empty($cache[$key])) {
 			$texy = $this->getTexy($this->texyClass);
@@ -82,8 +82,8 @@ class TexyBehavior extends Object implements IBehavior {
 	 * @param IRecord $record
 	 */
 	public function clearCache(IRecord $record) {
-		$cache = $this->getCache();
-		$key = get_class($record) . "/" . $this->name;
+		$cache = Environment::getCache(__CLASS__ . "-" . get_class($record) . "-" . $this->name);
+		$key = $record->getPrimary();
 		unset($cache[$key]);
 	}
 
@@ -96,15 +96,6 @@ class TexyBehavior extends Object implements IBehavior {
 		if ($record->isValueModified($this->source)) {
 			$this->clearCache($record);
 		}
-	}
-
-
-	/**
-	 * Get cache
-	 * @return Cache
-	 */
-	private function getCache() {
-		return Environment::getCache(__CLASS__);
 	}
 	
 }

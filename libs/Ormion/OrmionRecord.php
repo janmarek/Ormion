@@ -148,6 +148,24 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 
 
 	/**
+	 * Get primary key value
+	 * @return mixed
+	 */
+	public function getPrimary() {
+		$primaryColumns = static::getConfig()->getPrimaryColumns();
+		if (count($primaryColumns) == 1) {
+			return $this->{$primaryColumns[0]};
+		} else {
+			$arr = array();
+			foreach ($primaryColumns as $column) {
+				$arr[$column] = $this->$column;
+			}
+			return $arr;
+		}
+	}
+
+
+	/**
 	 * Find record
 	 * @param mixed $conditions
 	 * @return OrmionRecord
@@ -296,14 +314,12 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 
 			case dibi::DATE:
 			case dibi::DATETIME:
-				// '', NULL, FALSE, '0000-00-00', ...
-				if ((int) $value === 0) {
+				if ($value instanceof DateTime) {
+					return $value;
+				} elseif ((int) $value === 0) { // '', NULL, FALSE, '0000-00-00', ...
 					return null;
-
-				// return timestamp
 				} else {
-					// TODO Datetime
-					return is_numeric($value) ? (int) $value : strtotime($value);
+					return new DateTime(is_numeric($value) ? date('Y-m-d H:i:s', $value) : $value);
 				}
 
 			case dibi::BOOL:
@@ -317,18 +333,14 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	public function __set($name, $value) {
 		$name = $this->fixName($name);
 		$config = static::getConfig();
-		$type = $config->getColumnType($name);
-
-		if ($type) {
-			$value = $this->convertValue($value, $type, $config->isColumnNullable($name));
-		}
-
+		$value = $this->convertValue($value, $config->getColumnType($name), $config->isColumnNullable($name));
 		parent::__set($name, $value);
 	}
 
 	public function & __get($name) {
+		// TODO: možná nějaké if isColumn
 		if ($this->getState() === self::STATE_EXISTING && !parent::hasValue($name)) {
-			$this->loadValues();
+			$this->lazyLoadValues();
 		}
 
 		return parent::__get($name);
