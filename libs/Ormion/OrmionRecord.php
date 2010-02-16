@@ -11,6 +11,9 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	/** @var string */
 	protected static $mapperClass = "OrmionMapper";
 
+	/** @var array */
+	private static $mappers;
+
 	/** @var string */
 	protected static $table;
 
@@ -63,33 +66,31 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 
 
 	/**
-	 * Get table name
-	 * @return string table name
-	 */
-	public static function getTable() {
-		if (empty(static::$table)) {
-			throw new InvalidStateException("Table name is not set.");
-		}
-
-		return static::$table;
-	}
-
-
-	/**
-	 * Get mapper class name
-	 * @return string class name
-	 */
-	public static function getMapperClass() {
-		return static::$mapperClass;
-	}
-
-
-	/**
 	 * Get mapper
 	 * @return IMapper
 	 */
 	public static function getMapper() {
-		return Ormion::getMapper(get_called_class());
+		$class = get_called_class();
+
+		if (empty(self::$mappers[$class])) {
+			self::$mappers[$class] = static::createMapper();
+		}
+
+		return self::$mappers[$class];
+	}
+
+
+	/**
+	 * Mapper factory
+	 * @return IMapper
+	 */
+	public static function createMapper() {
+		if (empty(static::$table)) {
+			throw new InvalidStateException("Table name is not set.");
+		}
+
+		$cls = static::$mapperClass;
+		return new $cls(static::$table, get_called_class());
 	}
 
 
@@ -330,6 +331,12 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 		}
 	}
 
+
+	/**
+	 * Magic setter (with converting values)
+	 * @param string $name
+	 * @param mixed $value
+	 */
 	public function __set($name, $value) {
 		$name = $this->fixName($name);
 		$config = $this->getConfig();
@@ -337,6 +344,12 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 		parent::__set($name, $value);
 	}
 
+
+	/**
+	 * Magic getter (with lazy loading)
+	 * @param string $name
+	 * @return mixed
+	 */
 	public function & __get($name) {
 		$name = $this->fixName($name);
 

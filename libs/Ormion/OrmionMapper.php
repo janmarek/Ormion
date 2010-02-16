@@ -268,7 +268,7 @@ class OrmionMapper extends Object implements IMapper {
 			// set state
 			$record->setState(IRecord::STATE_DELETED);
 
-			$record->onAfterDelete($this);
+			$record->onAfterDelete($record);
 
 		} catch (Exception $e) {
 			throw new ModelException("Delete failed. " . $e->getMessage(), $e->getCode(), $e);

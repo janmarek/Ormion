@@ -10,9 +10,6 @@ final class Ormion extends Object {
 
 	const DEFAULT_CONNECTION_NAME = "ormion";
 
-	/** @var array */
-	private static $mappers;
-
 	
 	/**
 	 * Static class - cannot be instantiated.
@@ -49,21 +46,6 @@ final class Ormion extends Object {
 		}
 
 		dibi::getConnection($connectionName)->setProfiler($profiler);
-	}
-
-
-	/**
-	 * Get mapper
-	 * @return IMapper
-	 */
-	public static function getMapper($recordClass) {
-		if (empty(self::$mappers[$recordClass])) {
-			$mapperClass = call_user_func(array($recordClass, "getMapperClass"));
-			$table = call_user_func(array($recordClass, "getTable"));
-			self::$mappers[$recordClass] = new $mapperClass($table, $recordClass);
-		}
-
-		return self::$mappers[$recordClass];
 	}
 
 }
