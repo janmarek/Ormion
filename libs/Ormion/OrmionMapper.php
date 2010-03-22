@@ -60,14 +60,22 @@ class OrmionMapper extends Object implements IMapper {
 
 
 	/**
+	 * Get config file path
+	 * @return string
+	 */
+	public function getConfigFilePath() {
+		$dir = Environment::getVariable("ormionConfigDir", APP_DIR . "/models/config");
+		return $dir . "/" . $this->table . ".ini";
+	}
+
+
+	/**
 	 * Get table config
 	 * @return OrmionConfig
 	 */
 	public function getConfig() {
 		if (empty($this->config)) {
-			// file path
-			$dir = Environment::getVariable("ormionConfigDir", APP_DIR . "/models/config");
-			$filePath = $dir . "/" . $this->table . ".ini";
+			$filePath = $this->getConfigFilePath();
 
 			// existing file
 			if (file_exists($filePath)) {
