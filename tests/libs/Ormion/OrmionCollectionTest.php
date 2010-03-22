@@ -11,7 +11,7 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 	/** @var DibiConnection */
 	private $db;
 
-	/** @var OrmionRecordSet */
+	/** @var OrmionCollection */
 	private $object;
 
 	protected function setUp() {
@@ -46,6 +46,39 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 
 	protected function tearDown() {
 		$this->db->delete("pages")->execute();
+	}
+
+	public function testFetchColumn() {
+		$expected = array("Clanek", "Article", "Nepovolený článek", "Jinačí článek");
+		$this->assertEquals($expected, $this->object->fetchColumn("name"));
+		$res = $this->object->fetchColumn("id");
+		$this->assertType("int", $res[0]);
+	}
+
+	public function testFetchAll() {
+		$this->assertType("array", $this->object->fetchAll());
+		$this->assertEquals(2, count($this->object->fetchAll(2)));
+		$res = $this->object->fetchAll(2, 1);
+		$this->assertEquals(2, count($res));
+		$this->assertEquals("Article", $res[0]->name);
+		$this->assertType("Page", $res[0]);
+	}
+
+	public function testFetchAssoc() {
+		$res = $this->object->fetchAssoc("name,#");
+		$this->assertType("Page", $res["Clanek"][0]);
+	}
+	
+	public function testFetchPairs() {
+		foreach ($this->object->fetchPairs("id", "name") as $k => $v) {
+			$this->assertType("int", $k);
+			$this->assertType("string", $v);
+		}
+
+		foreach ($this->object->fetchPairs("name", "text") as $k => $v) {
+			$this->assertType("string", $k);
+			$this->assertType("string", $v);
+		}
 	}
 
 	public function testCount() {
