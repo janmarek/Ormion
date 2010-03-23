@@ -22,21 +22,25 @@ class OrmionMapperTest extends PHPUnit_Framework_TestCase {
 			"name" => "Clanek",
 			"description" => "Popis",
 			"text" => "Text",
+			"visits" => 0,
 			"allowed" => true,
 		), array(
 			"name" => "Article",
 			"description" => "Description",
 			"text" => "Text emericky.",
+			"visits" => 5,
 			"allowed" => false,
 		), array(
 			"name" => "Nepovolený článek",
 			"description" => "Popis nepovoleného článku",
 			"text" => "Dlouhý text. By byl delší než tento.",
+			"visits" => 3,
 			"allowed" => false,
 		), array(
 			"name" => "Jinačí článek",
 			"description" => "Ryze alternativní popis",
 			"text" => "Duchaplný text.",
+			"visits" => 8,
 			"allowed" => true,
 		));
 

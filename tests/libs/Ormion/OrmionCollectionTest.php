@@ -22,21 +22,25 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 			"name" => "Clanek",
 			"description" => "Popis",
 			"text" => "Text",
+			"visits" => 0,
 			"allowed" => true,
 		), array(
 			"name" => "Article",
 			"description" => "Description",
 			"text" => "Text emericky.",
+			"visits" => 5,
 			"allowed" => false,
 		), array(
 			"name" => "Nepovolený článek",
 			"description" => "Popis nepovoleného článku",
 			"text" => "Dlouhý text. By byl delší než tento.",
+			"visits" => 3,
 			"allowed" => false,
 		), array(
 			"name" => "Jinačí článek",
 			"description" => "Ryze alternativní popis",
 			"text" => "Duchaplný text.",
+			"visits" => 8,
 			"allowed" => true,
 		));
 
@@ -46,6 +50,38 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 
 	protected function tearDown() {
 		$this->db->delete("pages")->execute();
+	}
+
+	public function testGetSum() {
+		$res = $this->object->getSum("visits");
+		$this->assertType("int", $res);
+		$this->assertEquals(16, $res);
+		$this->setExpectedException("ModelException");
+		$this->object->getSum("nesmysl");
+	}
+
+	public function testGetAvg() {
+		$res = $this->object->getAvg("visits");
+		$this->assertType("int", $res);
+		$this->assertEquals(4, $res);
+		$this->setExpectedException("ModelException");
+		$this->object->getAvg("nesmysl");
+	}
+
+	public function testGetMin() {
+		$res = $this->object->getMin("visits");
+		$this->assertType("int", $res);
+		$this->assertEquals(0, $res);
+		$this->setExpectedException("ModelException");
+		$this->object->getMin("nesmysl");
+	}
+
+	public function testGetMax() {
+		$res = $this->object->getMax("visits");
+		$this->assertType("int", $res);
+		$this->assertEquals(8, $res);
+		$this->setExpectedException("ModelException");
+		$this->object->getMax("nesmysl");
 	}
 
 	public function testFetchColumn() {
@@ -79,6 +115,9 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 			$this->assertType("string", $k);
 			$this->assertType("string", $v);
 		}
+
+		$this->setExpectedException("ModelException");
+		$this->object->fetchPairs("nesmysl", "nesmysl");
 	}
 
 	public function testCount() {

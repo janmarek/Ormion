@@ -190,4 +190,61 @@ class OrmionCollection extends LazyArrayList {
 		throw new NotImplementedException;
 	}
 
+
+	/**
+	 * Get aggregate function value
+	 * @param string $functionName function name
+	 * @param string $column column name
+	 * @return int
+	 */
+	private function getAggr($functionName, $column) {
+		$fluent = clone $this->fluent;
+
+		$res = $this->runQuery(
+			$fluent->removeClause("select")->select("$functionName([$column])")
+		);
+
+		return (int) $res->fetchSingle();
+	}
+
+
+	/**
+	 * Get max column value
+	 * @param string $column column name
+	 * @return int
+	 */
+	public function getMax($column) {
+		return $this->getAggr("max", $column);
+	}
+
+
+	/**
+	 * Get min column value
+	 * @param string $column column name
+	 * @return int
+	 */
+	public function getMin($column) {
+		return $this->getAggr("min", $column);
+	}
+
+
+	/**
+	 * Get average column value
+	 * @param string $column column name
+	 * @return int
+	 */
+	public function getAvg($column) {
+		return $this->getAggr("avg", $column);
+	}
+
+
+	/**
+	 * Get sum column value
+	 * @param string $column column name
+	 * @return int
+	 */
+	public function getSum($column) {
+		return $this->getAggr("sum", $column);
+	}
+
 }

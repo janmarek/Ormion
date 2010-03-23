@@ -34,6 +34,7 @@ CREATE TABLE `pages` (
   `name` varchar(50) COLLATE utf8_czech_ci NOT NULL,
   `description` tinytext COLLATE utf8_czech_ci,
   `text` text COLLATE utf8_czech_ci NOT NULL,
+  `visits` int(10) unsigned NOT NULL,
   `created` datetime NOT NULL,
   `allowed` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
