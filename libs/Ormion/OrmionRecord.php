@@ -171,7 +171,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	 * @param mixed $conditions
 	 * @return OrmionRecord
 	 */
-	public static function find($conditions = array()) {
+	public static function find($conditions = null) {
 		return static::getMapper()->find($conditions);
 	}
 
@@ -181,7 +181,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	 * @param array $conditions
 	 * @return OrmionCollection
 	 */
-	public static function findAll($conditions = array()) {
+	public static function findAll($conditions = null) {
 		return static::getMapper()->findAll($conditions);
 	}
 

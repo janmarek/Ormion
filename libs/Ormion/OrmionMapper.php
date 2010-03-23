@@ -129,8 +129,9 @@ class OrmionMapper extends Object implements IMapper {
 	 * @param array $conditions
 	 * @return OrmionCollection
 	 */
-	public function findAll($conditions = array()) {
-		$fluent = $this->createFindFluent()->where($conditions);
+	public function findAll($conditions = null) {
+		$fluent = $this->createFindFluent();
+		if ($conditions) $fluent->where($conditions);
 		return new OrmionCollection($fluent, $this->rowClass);
 	}
 
@@ -140,16 +141,19 @@ class OrmionMapper extends Object implements IMapper {
 	 * @param array|int $conditions
 	 * @return IRecord|false
 	 */
-	public function find($conditions = array()) {
-		if (!is_array($conditions)) {
-			$conditions = array(
+	public function find($conditions = null) {
+		$fluent = $this->createFindFluent();
+
+		if (is_scalar($conditions)) {
+			$fluent->where(array(
 				$this->getConfig()->getPrimaryColumn() => $conditions,
-			);
+			));
+		} elseif (is_array($conditions)) {
+			$fluent->where($conditions);
 		}
 
 		try {
-			$fluent = $this->createFindFluent()->where($conditions)->limit(1);
-			$res = $fluent->execute()->setRowClass($this->rowClass)->fetch();
+			$res = $fluent->limit(1)->execute()->setRowClass($this->rowClass)->fetch();
 		} catch (Exception $e) {
 			throw new ModelException("Find query failed. " . $e->getMessage(), $e->getCode(), $e);
 		}
@@ -168,8 +172,6 @@ class OrmionMapper extends Object implements IMapper {
 	 * @param array $values value names
 	 */
 	public function loadValues(IRecord $record, $values = null) {
-		// TODO: ModelException místo DibiDriverException
-
 		try {
 			$key = $record->getValues($this->getConfig()->getPrimaryColumns());
 		} catch (MemberAccessException $e) {
@@ -184,7 +186,13 @@ class OrmionMapper extends Object implements IMapper {
 
 		$fluent->where($key);
 
-		foreach ($fluent->fetch() as $key => $val) {
+		try {
+			$row = $fluent->fetch();
+		} catch (DibiDriverException $e) {
+			throw new ModelException("Unknown columns. " . $e->getMessage(), $e->getCode(), $e);
+		}
+
+		foreach ($row as $key => $val) {
 			$record->$key = $val;
 		}
 	}
