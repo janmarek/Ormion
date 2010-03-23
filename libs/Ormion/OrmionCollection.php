@@ -86,12 +86,24 @@ class OrmionCollection extends LazyArrayList {
 	/**
 	 * Execute fluent
 	 * @param DibiFluent $fluent
+	 * @param array $detectTypes
 	 * @return DibiResult
 	 * @throws ModelException
 	 */
-	private function runQuery(DibiFluent $fluent) {
+	private function runQuery(DibiFluent $fluent, array $detectTypes = null) {
 		try {
-			return $fluent->execute();
+			$res = $fluent->execute();
+
+			if ($detectTypes) {
+				$class = $this->getItemType();
+				$config = $class::getConfig();
+				
+				foreach ($detectTypes as $column) {
+					$res->setType($column, $config->getType($column));
+				}
+			}
+
+			return $res;
 		} catch (DibiDriverException $e) {
 			throw new ModelException("Query failed. " . $e->getMessage(), $e->getCode(), $e);
 		}
@@ -149,18 +161,8 @@ class OrmionCollection extends LazyArrayList {
 	 */
 	public function fetchPairs($key, $value) {
 		$fluent = clone $this->fluent;
-
-		$res = $this->runQuery(
-			$fluent->removeClause("select")->select("[$key], [$value]")
-		);
-
-		$class = $this->getItemType();
-		$config = $class::getConfig();
-
-		$res->setType($key, $config->getType($key));
-		$res->setType($value, $config->getType($value));
-
-		return $res->fetchPairs($key, $value);
+		$fluent->removeClause("select")->select("%n, %n", $key, $value);
+		return $this->runQuery($fluent, array($key, $value))->fetchPairs($key, $value);
 	}
 
 
@@ -171,23 +173,29 @@ class OrmionCollection extends LazyArrayList {
 	 */
 	public function fetchColumn($column) {
 		$fluent = clone $this->fluent;
-
-		$res = $this->runQuery($fluent->removeClause("select")->select("[$column]"));
-
-		$class = $this->getItemType();
-		$res->setType($column, $class::getConfig()->getType($column));
-
-		return $res->fetchPairs();
+		$fluent->removeClause("select")->select("%n", $column);
+		return $this->runQuery($fluent, array($column))->fetchPairs();
 	}
 
 
-	public function fetchSingle() {
-		throw new NotImplementedException;
+	/**
+	 * Fetches single value
+	 * @return mixed
+	 */
+	public function fetchSingle($column) {
+		$fluent = clone $this->fluent;
+		$fluent->removeClause("select")->select("%n", $column);
+		return $this->runQuery($fluent, array($column))->fetchSingle();
 	}
 
 
+	/**
+	 * Fetches single object
+	 * @return OrmionRecord|false
+	 */
 	public function fetch() {
-		throw new NotImplementedException;
+		$arr = $this->fetchAll(1);
+		return isset($arr[0]) ? $arr[0] : false;
 	}
 
 

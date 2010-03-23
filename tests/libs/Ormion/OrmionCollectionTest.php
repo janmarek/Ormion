@@ -120,6 +120,17 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 		$this->object->fetchPairs("nesmysl", "nesmysl");
 	}
 
+	public function testFetch() {
+		$res = $this->object->fetch();
+		$this->assertType("Page", $res);
+		$this->assertEquals($res->name, "Clanek");
+	}
+
+	public function testFetchSingle() {
+		$res = $this->object->fetchSingle("name");
+		$this->assertEquals($res, "Clanek");
+	}
+
 	public function testCount() {
 		$this->assertEquals(4, count($this->object));
 		$this->assertFalse($this->object->isLoaded());
