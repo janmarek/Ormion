@@ -123,7 +123,19 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 			return $this->state;
 		}
 
-		return $this->getMapper()->detectState($this);
+		$config = $this->getConfig();
+
+		if ($config->isPrimaryAutoincrement()) {
+			if (parent::hasValue($config->getPrimaryColumn())) {
+				return IRecord::STATE_EXISTING;
+			} else {
+				return IRecord::STATE_NEW;
+			}
+
+		} else {
+			// TODO check in db
+			return IRecord::STATE_NEW;
+		}
 	}
 
 
@@ -290,6 +302,17 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 		return $this;
 	}
 
+
+	/**
+	 * Multiple getter
+	 * @param array $columns
+	 * @return array
+	 */
+	public function getValues($columns = null) {
+		$this->lazyLoadValues($columns);
+		return parent::getValues($columns);
+	}
+
 	
 	/**
 	 * Convert value
@@ -358,6 +381,38 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 		}
 
 		return parent::__get($name);
+	}
+
+
+	/**
+	 * Magic isset with lazy loading
+	 * @param string $name
+	 * @return bool
+	 */
+	public function __isset($name) {
+		$name = $this->fixName($name);
+
+		if ($this->getState() === self::STATE_EXISTING && !parent::hasValue($name) && $this->getConfig()->isColumn($name)) {
+			$this->lazyLoadValues();
+		}
+
+		return parent::__isset($name);
+	}
+
+
+	/**
+	 * Has value with lazy loading
+	 * @param string $name
+	 * @return bool
+	 */
+	public function hasValue($name) {
+		$name = $this->fixName($name);
+
+		if ($this->getState() === self::STATE_EXISTING && !parent::hasValue($name) && $this->getConfig()->isColumn($name)) {
+			$this->lazyLoadValues();
+		}
+
+		return parent::hasValue($name);
 	}
 
 }

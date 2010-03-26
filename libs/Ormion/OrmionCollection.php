@@ -6,7 +6,7 @@
  * @author Jan Marek
  * @license MIT
  */
-class OrmionCollection extends LazyArrayList {
+class OrmionCollection extends LazyArrayList implements IDataSource {
 
 	/** @var DibiFluent */
 	private $fluent;

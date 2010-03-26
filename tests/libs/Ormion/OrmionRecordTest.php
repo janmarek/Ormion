@@ -76,9 +76,29 @@ class OrmionRecordTest extends PHPUnit_Framework_TestCase {
 		$page = new Page($id);
 		$this->assertEquals("Jinačí článek", $page->name);
 
+		$page = new Page($id);
+		$values = $page->getValues();
+		$this->assertEquals("Jinačí článek", $values["name"]);
+
 		$page2 = new Page;
 		$this->setExpectedException("MemberAccessException");
 		$page2->text;
+	}
+
+	public function testLazyIsset() {
+		$id = $this->db->select("max(id)")->from("pages")->fetchSingle();
+
+		$page = new Page($id);
+		$this->assertTrue(isset($page->name));
+		$this->assertFalse(isset($page->nesmysl));
+	}
+
+	public function testLazyHasValue() {
+		$id = $this->db->select("max(id)")->from("pages")->fetchSingle();
+
+		$page = new Page($id);
+		$this->assertTrue($page->hasValue("name"));
+		$this->assertFalse($page->hasValue("nesmysl"));
 	}
 
 }

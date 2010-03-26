@@ -94,28 +94,6 @@ class OrmionMapper extends Object implements IMapper {
 
 
 	/**
-	 * Detect record state
-	 * @param IRecord $record
-	 * @return int
-	 */
-	public function detectState(IRecord $record) {
-		$config = $this->getConfig();
-
-		if ($config->isPrimaryAutoincrement()) {
-			if (isset($record[$config->getPrimaryColumn()])) {
-				return IRecord::STATE_EXISTING;
-			} else {
-				return IRecord::STATE_NEW;
-			}
-
-		} else {
-			// TODO check in db
-			return IRecord::STATE_NEW;
-		}
-	}
-
-
-	/**
 	 * Create base DibiFluent for find
 	 * @return DibiFluent
 	 */
