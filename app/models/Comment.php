@@ -6,7 +6,7 @@
  * @author Honza
  */
 
-class Comment extends OrmionRecord {
+class Comment extends Ormion\Record {
 
 	/** @var string */
 	protected static $table = "comments";

@@ -1,19 +1,21 @@
 <?php
 
+use Nette\String;
+
 /**
- * OrmionStorage test
+ * Ormion\Storage test
  *
  * @author Jan Marek
  * @backupStaticAttributes disabled
  * @backupGlobals disabled
  */
-class OrmionStorageTest extends PHPUnit_Framework_TestCase {
+class StorageTest extends PHPUnit_Framework_TestCase {
 
-	/** @var OrmionStorage */
+	/** @var Ormion\Storage */
 	private $object;
 
 	protected function setUp() {
-		$this->object = new OrmionStorage;
+		$this->object = new Ormion\Storage;
 	}
 
 	public function testRegisterSetter() {

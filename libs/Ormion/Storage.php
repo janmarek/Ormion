@@ -1,11 +1,21 @@
 <?php
 
+namespace Ormion;
+
+use Nette\FreezableObject;
+use ArrayAccess;
+use IteratorAggregate;
+use ArrayIterator;
+use InvalidArgumentException;
+use MemberAccessException;
+use ArrayObject;
+
 /**
  * Ormion storage
  *
  * @author Jan Marek
  */
-class OrmionStorage extends FreezableObject implements ArrayAccess, IteratorAggregate {
+class Storage extends FreezableObject implements ArrayAccess, IteratorAggregate {
 
 	/** @var ArrayObject */
 	private $values;

@@ -1,5 +1,7 @@
 <?php
 
+use Nette\Collections\ArrayList;
+
 
 /**
  * ArrayList with lazy loading.

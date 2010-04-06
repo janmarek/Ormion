@@ -1,11 +1,16 @@
 <?php
 
+namespace Ormion\Behavior;
+
+use Nette\Object;
+use Ormion\IRecord;
+
 /**
  * Sortable behavior
  *
  * @author Jan Marek
  */
-class SortableBehavior extends Object implements IBehavior {
+class Sortable extends Object implements IBehavior {
 
 	/** @var string */
 	private $orderColumn;

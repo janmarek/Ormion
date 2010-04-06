@@ -6,7 +6,7 @@
  * @author Honza
  */
 
-class Page extends OrmionRecord {
+class Page extends Ormion\Record {
 
 	/** @var string */
 	protected static $table = "pages";

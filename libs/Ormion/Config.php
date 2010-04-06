@@ -1,12 +1,19 @@
 <?php
 
+namespace Ormion;
+
+use Nette\Object;
+use Nette\Config\ConfigAdapterIni;
+use InvalidArgumentException;
+use DibiTableInfo;
+
 /**
  * Ormion config
  *
  * @author Jan Marek
  * @license MIT
  */
-class OrmionConfig extends Object {
+class Config extends Object {
 
 	/** @var bool */
 	public static $generateForms = true;
@@ -27,7 +34,7 @@ class OrmionConfig extends Object {
 	/**
 	 * Save config to ini file
 	 * @param string $file
-	 * @return OrmionConfig
+	 * @return Config
 	 */
 	public function save($file) {
 		ConfigAdapterIni::save($this->data, $file);
@@ -38,7 +45,7 @@ class OrmionConfig extends Object {
 	/**
 	 * Create config from ini file
 	 * @param string $file
-	 * @return OrmionConfig
+	 * @return Config
 	 */
 	public static function fromFile($file) {
 		return new self(ConfigAdapterIni::load($file));
@@ -46,8 +53,8 @@ class OrmionConfig extends Object {
 
 
 	/**
-	 * Create OrmionConfig from database table info
-	 * @return OrmionConfig
+	 * Create Config from database table info
+	 * @return Config
 	 */
 	public static function fromTableInfo(DibiTableInfo $tableInfo) {
 		// columns

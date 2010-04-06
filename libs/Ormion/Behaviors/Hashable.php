@@ -1,12 +1,17 @@
 <?php
 
+namespace Ormion\Behavior;
+
+use Nette\Object;
+use Ormion\IRecord;
+
 /**
  * Hashable behavior
  *
  * @author Jan Marek
  * @license MIT
  */
-class HashableBehavior extends Object implements IBehavior {
+class Hashable extends Object implements IBehavior {
 
 	/** @var string */
 	private $column;

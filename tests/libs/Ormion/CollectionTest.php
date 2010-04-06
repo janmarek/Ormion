@@ -1,17 +1,19 @@
 <?php
 
+use Ormion\Record;
+
 /**
- * Test class for OrmionCollection
+ * Test class for Collection
  *
  * @backupStaticAttributes disabled
  * @backupGlobals disabled
  */
-class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
+class CollectionTest extends PHPUnit_Framework_TestCase {
 
 	/** @var DibiConnection */
 	private $db;
 
-	/** @var OrmionCollection */
+	/** @var Collection */
 	private $object;
 
 	protected function setUp() {
@@ -45,7 +47,7 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 		));
 
 		$fluent = $this->db->select("*")->from("pages");
-		$this->object = new OrmionCollection($fluent, "Page");
+		$this->object = new Ormion\Collection($fluent, "Page");
 	}
 
 	protected function tearDown() {
@@ -54,17 +56,17 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 
 	public function testGetSum() {
 		$res = $this->object->getSum("visits");
-		$this->assertType("int", $res);
+		$this->assertType("float", $res);
 		$this->assertEquals(16, $res);
-		$this->setExpectedException("ModelException");
+		$this->setExpectedException("Ormion\ModelException");
 		$this->object->getSum("nesmysl");
 	}
 
 	public function testGetAvg() {
 		$res = $this->object->getAvg("visits");
-		$this->assertType("int", $res);
+		$this->assertType("float", $res);
 		$this->assertEquals(4, $res);
-		$this->setExpectedException("ModelException");
+		$this->setExpectedException("Ormion\ModelException");
 		$this->object->getAvg("nesmysl");
 	}
 
@@ -72,7 +74,7 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 		$res = $this->object->getMin("visits");
 		$this->assertType("int", $res);
 		$this->assertEquals(0, $res);
-		$this->setExpectedException("ModelException");
+		$this->setExpectedException("Ormion\ModelException");
 		$this->object->getMin("nesmysl");
 	}
 
@@ -80,7 +82,7 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 		$res = $this->object->getMax("visits");
 		$this->assertType("int", $res);
 		$this->assertEquals(8, $res);
-		$this->setExpectedException("ModelException");
+		$this->setExpectedException("Ormion\ModelException");
 		$this->object->getMax("nesmysl");
 	}
 
@@ -116,7 +118,7 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 			$this->assertType("string", $v);
 		}
 
-		$this->setExpectedException("ModelException");
+		$this->setExpectedException("Ormion\ModelException");
 		$this->object->fetchPairs("nesmysl", "nesmysl");
 	}
 
@@ -172,7 +174,7 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 
 	public function testState() {
 		$o = $this->object[0];
-		$this->assertEquals(OrmionRecord::STATE_EXISTING, $o->getState());
+		$this->assertEquals(Record::STATE_EXISTING, $o->getState());
 	}
 
 	public function testFreeze() {
@@ -187,7 +189,7 @@ class OrmionCollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testQueryException() {
-		$this->setExpectedException("ModelException");
+		$this->setExpectedException("Ormion\ModelException");
 		$this->object->orderBy("nesmysl");
 		$this->object[0]; // init
 	}

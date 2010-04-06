@@ -1,15 +1,23 @@
 <?php
 
+namespace Ormion;
+
+use dibi;
+use InvalidStateException;
+use InvalidArgumentException;
+use Ormion\Behavior\IBehavior;
+use DateTime;
+
 /**
  * Ormion record
  *
  * @author Jan Marek
  * @license MIT
  */
-abstract class OrmionRecord extends OrmionStorage implements IRecord {
+abstract class Record extends Storage implements IRecord {
 
 	/** @var string */
-	protected static $mapperClass = "OrmionMapper";
+	protected static $mapperClass = "Ormion\Mapper";
 
 	/** @var array */
 	private static $mappers;
@@ -58,7 +66,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	/**
 	 * Create instance
 	 * @param array $data
-	 * @return OrmionRecord
+	 * @return Record
 	 */
 	public static function create($data = null) {
 		return new static($data);
@@ -96,7 +104,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 
 	/**
 	 * Get config
-	 * @return OrmionConfig
+	 * @return Config
 	 */
 	public static function getConfig() {
 		return static::getMapper()->getConfig();
@@ -106,7 +114,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	/**
 	 * Add record behavior
 	 * @param IBehavior $behavior
-	 * @return OrmionRecord
+	 * @return Record
 	 */
 	public function addBehavior(IBehavior $behavior) {
 		$behavior->setUp($this);
@@ -142,7 +150,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	/**
 	 * Set state
 	 * @param int $state
-	 * @return OrmionRecord
+	 * @return Record
 	 */
 	public function setState($state) {
 		$this->state = $state;
@@ -181,7 +189,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	/**
 	 * Find record
 	 * @param mixed $conditions
-	 * @return OrmionRecord
+	 * @return Record
 	 */
 	public static function find($conditions = null) {
 		return static::getMapper()->find($conditions);
@@ -191,7 +199,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	/**
 	 * Find all records
 	 * @param array $conditions
-	 * @return OrmionCollection
+	 * @return Collection
 	 */
 	public static function findAll($conditions = null) {
 		return static::getMapper()->findAll($conditions);
@@ -205,7 +213,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	 *
 	 * @param  string
 	 * @param  array
-	 * @return OrmionRecord|false|OrmionCollection
+	 * @return Record|false|Collection
 	 */
 	public static function __callStatic($name, $args) {
 		if (strncmp($name, 'findBy', 6) === 0) { // single row
@@ -235,7 +243,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 
 	/**
 	 * Save record
-	 * @return OrmionRecord
+	 * @return Record
 	 */
 	public function save() {
 		$this->updating();
@@ -260,7 +268,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 
 	/**
 	 * Delete record
-	 * @return OrmionRecord
+	 * @return Record
 	 */
 	public function delete() {
 		$this->getMapper()->delete($this);
@@ -271,7 +279,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	/**
 	 * Load specified values into this record
 	 * @param array $values value names, null means all values
-	 * @return OrmionRecord
+	 * @return Record
 	 */
 	public function loadValues($values = null) {
 		$this->getMapper()->loadValues($this, $values);
@@ -282,7 +290,7 @@ abstract class OrmionRecord extends OrmionStorage implements IRecord {
 	/**
 	 * Load not loaded values
 	 * @param array $values
-	 * @return OrmionRecord
+	 * @return Record
 	 */
 	public function lazyLoadValues($values = null) {
 		if ($values === null) {

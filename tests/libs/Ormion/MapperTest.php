@@ -1,17 +1,19 @@
 <?php
 
+use Nette\Environment;
+
 /**
- * Test class for OrmionMapper
+ * Test class for Ormion\Mapper
  *
  * @backupStaticAttributes disabled
  * @backupGlobals disabled
  */
-class OrmionMapperTest extends PHPUnit_Framework_TestCase {
+class MapperTest extends PHPUnit_Framework_TestCase {
 
 	/** @var DibiConnection */
 	private $db;
 
-	/** @var OrmionMapper */
+	/** @var Ormion\Mapper */
 	private $object;
 
 	protected function setUp() {
@@ -46,7 +48,7 @@ class OrmionMapperTest extends PHPUnit_Framework_TestCase {
 
 		Environment::setVariable("ormionConfigDir", "%tempDir%/testOrmionConfig");
 		unlink(Environment::getVariable("ormionConfigDir") . "/pages.ini");
-		$this->object = new OrmionMapper("pages", "Page");
+		$this->object = new Ormion\Mapper("pages", "Page");
 	}
 
 	protected function tearDown() {
@@ -58,7 +60,7 @@ class OrmionMapperTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testGetConfig() {
-		$this->assertType("OrmionConfig", $this->object->getConfig());
+		$this->assertType("Ormion\Config", $this->object->getConfig());
 	}
 
 	public function testFind() {
@@ -68,7 +70,7 @@ class OrmionMapperTest extends PHPUnit_Framework_TestCase {
 
 		$this->assertType("Page", $o);
 		$this->assertEquals("Clanek", $o->name);
-		$this->assertEquals(OrmionRecord::STATE_EXISTING, $o->getState());
+		$this->assertEquals(Ormion\Record::STATE_EXISTING, $o->getState());
 	}
 
 	public function testFindByPrimary() {
@@ -99,7 +101,7 @@ class OrmionMapperTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testFindException() {
-		$this->setExpectedException("ModelException");
+		$this->setExpectedException("Ormion\ModelException");
 		$this->object->find(array(
 			"nesmysl" => true,
 		));
@@ -107,7 +109,7 @@ class OrmionMapperTest extends PHPUnit_Framework_TestCase {
 
 	public function testFindAll() {
 		$set = $this->object->findAll($conditions);
-		$this->assertType("OrmionCollection", $set);
+		$this->assertType("Ormion\Collection", $set);
 		$this->assertFalse($set->isLoaded());
 		$this->assertEquals("Page", $set->getItemType());
 	}
@@ -121,11 +123,11 @@ class OrmionMapperTest extends PHPUnit_Framework_TestCase {
 
 		$page->allowed = true;
 
-		$this->assertEquals(OrmionRecord::STATE_NEW, $page->getState());
+		$this->assertEquals(Ormion\Record::STATE_NEW, $page->getState());
 
 		$this->object->insert($page);
 
-		$this->assertEquals(OrmionRecord::STATE_EXISTING, $page->getState());
+		$this->assertEquals(Ormion\Record::STATE_EXISTING, $page->getState());
 
 		$this->assertType("int", $page->id);
 
@@ -174,7 +176,7 @@ class OrmionMapperTest extends PHPUnit_Framework_TestCase {
 
 		$this->object->delete($record);
 
-		$this->assertEquals(OrmionRecord::STATE_DELETED, $record->getState());
+		$this->assertEquals(Ormion\Record::STATE_DELETED, $record->getState());
 
 		$res = $this->object->find(array(
 			"name" => "Clanek",

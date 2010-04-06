@@ -1,12 +1,17 @@
 <?php
 
+namespace Ormion\Behavior;
+
+use Nette\Object;
+use Ormion\IRecord;
+
 /**
  * Timestampable behavior
  *
  * @author Jan Marek
  * @license MIT
  */
-class TimestampableBehavior extends Object implements IBehavior {
+class Timestampable extends Object implements IBehavior {
 
 	/** @var string|null */
 	private $created;

@@ -1,12 +1,14 @@
 <?php
 
+use Nette\Environment;
+
 /**
- * Test class for OrmionRecord
+ * Test class for Ormion\Record
  *
  * @backupStaticAttributes disabled
  * @backupGlobals disabled
  */
-class OrmionRecordTest extends PHPUnit_Framework_TestCase {
+class RecordTest extends PHPUnit_Framework_TestCase {
 
 	/** @var DibiConnection */
 	private $db;
@@ -60,13 +62,13 @@ class OrmionRecordTest extends PHPUnit_Framework_TestCase {
 
 	public function testFindAll() {
 		$set = Page::findAll();
-		$this->assertType("OrmionCollection", $set);
+		$this->assertType("Ormion\Collection", $set);
 		$this->assertType("Page", $set[0]);
 
 		$set = Page::findAll(array(
 			"allowed" => true,
 		));
-		$this->assertType("OrmionCollection", $set);
+		$this->assertType("Ormion\Collection", $set);
 		$this->assertEquals(2, count($set));
 	}
 

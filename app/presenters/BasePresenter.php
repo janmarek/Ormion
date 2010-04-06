@@ -1,5 +1,7 @@
 <?php
 
+use Nette\Application\Presenter;
+
 /**
  * Base presenter
  */

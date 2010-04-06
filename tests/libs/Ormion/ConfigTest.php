@@ -1,19 +1,19 @@
 <?php
 
 /**
- * OrmionConfigTest
+ * ConfigTest
  *
  * @author Jan Marek
  * @backupStaticAttributes disabled
  * @backupGlobals disabled
  */
-class OrmionConfigTest extends PHPUnit_Framework_TestCase {
+class ConfigTest extends PHPUnit_Framework_TestCase {
 
-	/** @var OrmionConfig */
+	/** @var Ormion\Config */
 	private $object;
 
 	protected function setUp() {
-		$this->object = new OrmionConfig(array(
+		$this->object = new Ormion\Config(array(
 			"column" => array(
 				"id" => array(
 					"type" => dibi::INTEGER,
@@ -66,19 +66,19 @@ class OrmionConfigTest extends PHPUnit_Framework_TestCase {
 	}
 
 	private function generatedConfig($useFile, $generateForms) {
-		OrmionConfig::$generateForms = $generateForms;
+		Ormion\Config::$generateForms = $generateForms;
 
 		$tableInfo = dibi::getConnection("ormion")->getDatabaseInfo()->getTable("pages");
-		$cfg = OrmionConfig::fromTableInfo($tableInfo);
+		$cfg = Ormion\Config::fromTableInfo($tableInfo);
 
 		if ($useFile) {
 			$filePath = APP_DIR . "/temp/" . md5(uniqid() . time()) . ".ini";
 			$cfg->save($filePath);
-			$cfg = OrmionConfig::fromFile($filePath);
+			$cfg = Ormion\Config::fromFile($filePath);
 		}
 
 		$this->assertEquals(
-			array("id", "name", "description", "text", "created", "allowed"),
+			array("id", "name", "description", "text", "visits", "created", "allowed"),
 			$cfg->getColumns()
 		);
 
@@ -153,7 +153,7 @@ class OrmionConfigTest extends PHPUnit_Framework_TestCase {
 	public function testIsPrimaryAutoIncrement() {
 		$this->assertTrue($this->object->isPrimaryAutoIncrement());
 
-		$cfg = new OrmionConfig(array(
+		$cfg = new Ormion\Config(array(
 			"key" => array(
 				"rc" => array(
 					"primary" => true,
@@ -169,7 +169,7 @@ class OrmionConfigTest extends PHPUnit_Framework_TestCase {
 	public function testGetPrimaryColumn() {
 		$this->assertEquals("id", $this->object->getPrimaryColumn());
 
-		$cfg = new OrmionConfig(array(
+		$cfg = new Ormion\Config(array(
 			"key" => array(
 				"articleId" => array(
 					"primary" => true,
@@ -189,7 +189,7 @@ class OrmionConfigTest extends PHPUnit_Framework_TestCase {
 	public function testGetPrimaryColumns() {
 		$this->assertEquals(array("id"), $this->object->getPrimaryColumns());
 
-		$cfg = new OrmionConfig(array(
+		$cfg = new Ormion\Config(array(
 			"key" => array(
 				"rc" => array(
 					"primary" => true,
@@ -200,7 +200,7 @@ class OrmionConfigTest extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals(array("rc"), $cfg->getPrimaryColumns());
 
-		$cfg = new OrmionConfig(array(
+		$cfg = new Ormion\Config(array(
 			"key" => array(
 				"articleId" => array(
 					"primary" => true,

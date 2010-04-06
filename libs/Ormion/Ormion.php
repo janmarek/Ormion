@@ -1,5 +1,13 @@
 <?php
 
+namespace Ormion;
+
+use Nette\Object;
+use Nette\Environment;
+use LogicException;
+use DibiProfiler;
+use dibi;
+
 /**
  * Ormion main class
  *

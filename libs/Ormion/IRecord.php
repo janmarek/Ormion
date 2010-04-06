@@ -1,5 +1,7 @@
 <?php
 
+namespace Ormion;
+
 /**
  * Interface Record
  *

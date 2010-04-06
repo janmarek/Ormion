@@ -1,12 +1,19 @@
 <?php
 
+namespace Ormion;
+
+use LazyArrayList;
+use IDataSource;
+use DibiFluent;
+use DibiDriverException;
+
 /**
  * Record set
  *
  * @author Jan Marek
  * @license MIT
  */
-class OrmionCollection extends LazyArrayList implements IDataSource {
+class Collection extends LazyArrayList implements IDataSource {
 
 	/** @var DibiFluent */
 	private $fluent;
@@ -35,7 +42,7 @@ class OrmionCollection extends LazyArrayList implements IDataSource {
 	 * Change DibiFluent
 	 * @param string $name
 	 * @param array $args
-	 * @return OrmionCollection
+	 * @return Collection
 	 */
 	public function __call($name, $args) {
 		call_user_func_array(array($this->fluent, $name), $args);
@@ -191,7 +198,7 @@ class OrmionCollection extends LazyArrayList implements IDataSource {
 
 	/**
 	 * Fetches single object
-	 * @return OrmionRecord|false
+	 * @return Record|false
 	 */
 	public function fetch() {
 		$arr = $this->fetchAll(1);
@@ -212,7 +219,9 @@ class OrmionCollection extends LazyArrayList implements IDataSource {
 			$fluent->removeClause("select")->select("$functionName([$column])")
 		);
 
-		return (int) $res->fetchSingle();
+		$res->detectTypes();
+
+		return $res->fetchSingle();
 	}
 
 

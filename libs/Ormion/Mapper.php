@@ -1,12 +1,20 @@
 <?php
 
+namespace Ormion;
+
+use Nette\Object;
+use Nette\Environment;
+use MemberAccessException;
+use DibiDriverException;
+use dibi;
+
 /**
  * Mapper
  *
  * @author Jan Marek
  * @license MIT
  */
-class OrmionMapper extends Object implements IMapper {
+class Mapper extends Object implements IMapper {
 
 	/** @var string */
 	protected $dibiConnectionName = Ormion::DEFAULT_CONNECTION_NAME;
@@ -71,7 +79,7 @@ class OrmionMapper extends Object implements IMapper {
 
 	/**
 	 * Get table config
-	 * @return OrmionConfig
+	 * @return Config
 	 */
 	public function getConfig() {
 		if (empty($this->config)) {
@@ -79,12 +87,12 @@ class OrmionMapper extends Object implements IMapper {
 
 			// existing file
 			if (file_exists($filePath)) {
-				$this->config = OrmionConfig::fromFile($filePath);
+				$this->config = Config::fromFile($filePath);
 
 			// create config
 			} else {
 				$tableInfo = $this->getDb()->getDatabaseInfo()->getTable($this->table);
-				$this->config = OrmionConfig::fromTableInfo($tableInfo);
+				$this->config = Config::fromTableInfo($tableInfo);
 				$this->config->save($filePath);
 			}
 		}
@@ -105,12 +113,12 @@ class OrmionMapper extends Object implements IMapper {
 	/**
 	 * Find all results
 	 * @param array $conditions
-	 * @return OrmionCollection
+	 * @return Collection
 	 */
 	public function findAll($conditions = null) {
 		$fluent = $this->createFindFluent();
 		if ($conditions) $fluent->where($conditions);
-		return new OrmionCollection($fluent, $this->rowClass);
+		return new Collection($fluent, $this->rowClass);
 	}
 
 
@@ -132,7 +140,7 @@ class OrmionMapper extends Object implements IMapper {
 
 		try {
 			$res = $fluent->limit(1)->execute()->setRowClass($this->rowClass)->fetch();
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			throw new ModelException("Find query failed. " . $e->getMessage(), $e->getCode(), $e);
 		}
 
@@ -208,7 +216,7 @@ class OrmionMapper extends Object implements IMapper {
 
 			$record->onAfterInsert($record);
 
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			throw new ModelException("Insert failed. " . $e->getMessage(), $e->getCode(), $e);
 		}
 	}
@@ -240,7 +248,7 @@ class OrmionMapper extends Object implements IMapper {
 
 			$record->onAfterUpdate($record);
 
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			throw new ModelException("Update failed. " . $e->getMessage(), $e->getCode(), $e);
 		}
 	}

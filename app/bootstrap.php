@@ -7,6 +7,10 @@
  * @package    MyApplication
  */
 
+use Nette\Debug;
+use Nette\Environment;
+use Nette\Application\Route;
+use Ormion\Ormion;
 
 
 // Step 1: Load Nette Framework

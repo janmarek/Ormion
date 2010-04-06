@@ -1,12 +1,18 @@
 <?php
 
+namespace Ormion\Behavior;
+
+use Nette\Object;
+use Nette\Environment;
+use Ormion\IRecord;
+
 /**
  * Cached Texy
  *
  * @author Jan Marek
  * @license MIT
  */
-class TexyBehavior extends Object implements IBehavior {
+class Texy extends Object implements IBehavior {
 
 	/** @var array */
 	private static $texyObjects;
@@ -65,7 +71,7 @@ class TexyBehavior extends Object implements IBehavior {
 	 * @return string
 	 */
 	public function getHtml(IRecord $record) {
-		$cache = Environment::getCache(__CLASS__ . "-" . get_class($record) . "-" . $this->name);
+		$cache = Environment::getCache(__NAMESPACE__ . "-" . __CLASS__ . "-" . get_class($record) . "-" . $this->name);
 		$key = $record->getPrimary();
 
 		if (empty($cache[$key])) {
@@ -82,7 +88,7 @@ class TexyBehavior extends Object implements IBehavior {
 	 * @param IRecord $record
 	 */
 	public function clearCache(IRecord $record) {
-		$cache = Environment::getCache(__CLASS__ . "-" . get_class($record) . "-" . $this->name);
+		$cache = Environment::getCache(__NAMESPACE__ . "-" . __CLASS__ . "-" . get_class($record) . "-" . $this->name);
 		$key = $record->getPrimary();
 		unset($cache[$key]);
 	}

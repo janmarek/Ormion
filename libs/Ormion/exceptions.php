@@ -1,5 +1,7 @@
 <?php
 
-class ModelException extends Exception {
+namespace Ormion;
+
+class ModelException extends \Exception {
 	
 }

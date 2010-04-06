@@ -1,5 +1,9 @@
 <?php
 
+namespace Ormion\Behavior;
+
+use Ormion\IRecord;
+
 /**
  * Interface Behavior
  *
