@@ -159,16 +159,6 @@ abstract class Record extends Storage implements IRecord {
 
 
 	/**
-	 * Create form from config
-	 * @param string $name
-	 * @return Form
-	 */
-	public static function createForm($name) {
-		return OrmionForm::create(static::getConfig()->getForm($name));
-	}
-
-
-	/**
 	 * Get primary key value
 	 * @return mixed
 	 */

@@ -48,26 +48,10 @@ class ConfigTest extends PHPUnit_Framework_TestCase {
 					"autoIncrement" => true,
 				),
 			),
-
-			"form_jmeno" => array(
-				"id" => array(
-					"type" => "hidden",
-				),
-				"text" => array(
-					"type" => "text",
-					"label" => "Text",
-				),
-				"s" => array(
-					"type" => "submit",
-					"label" => "OK",
-				),
-			),
 		));
 	}
 
-	private function generatedConfig($useFile, $generateForms) {
-		Ormion\Config::$generateForms = $generateForms;
-
+	private function generatedConfig($useFile) {
 		$tableInfo = dibi::getConnection("ormion")->getDatabaseInfo()->getTable("pages");
 		$cfg = Ormion\Config::fromTableInfo($tableInfo);
 
@@ -95,20 +79,6 @@ class ConfigTest extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals("id", $cfg->getPrimaryColumn());
 
-		if ($generateForms) {
-			$this->assertType("array", $cfg->getForm("default"));
-		} else {
-			try {
-				$cfg->getForm("default");
-				$this->fail();
-				
-			} catch (InvalidArgumentException $e) {
-
-			} catch (Exception $e) {
-				$this->fail();
-			}
-		}
-
 		if ($useFile) {
 			unlink($filePath);
 		}
@@ -116,14 +86,12 @@ class ConfigTest extends PHPUnit_Framework_TestCase {
 
 
 	public function testFromTableInfo() {
-		$this->generatedConfig(false, true);
-		$this->generatedConfig(false, false);
+		$this->generatedConfig(false);
 	}
 
 
 	public function testSaveAndFromFile() {
-		$this->generatedConfig(true, true);
-		$this->generatedConfig(true, false);
+		$this->generatedConfig(true);
 	}
 
 
@@ -214,15 +182,6 @@ class ConfigTest extends PHPUnit_Framework_TestCase {
 		));
 
 		$this->assertEquals(array("articleId", "tagId"), $cfg->getPrimaryColumns());
-	}
-
-
-	public function testGetForm() {
-		$this->assertType("array", $this->object->getForm("jmeno"));
-
-		$this->setExpectedException("InvalidArgumentException");
-
-		$this->object->getForm("jmenoNeexistujicihoFormu");
 	}
 
 }

@@ -15,9 +15,6 @@ use DibiTableInfo;
  */
 class Config extends Object {
 
-	/** @var bool */
-	public static $generateForms = true;
-
 	/** @var array */
 	private $data;
 
@@ -72,31 +69,6 @@ class Config extends Object {
 			$name = $column->getName();
 			$arr["key"][$name]["primary"] = true;
 			$arr["key"][$name]["autoIncrement"] = $column->isAutoIncrement();
-		}
-
-		// form
-		if (self::$generateForms) {
-			foreach ($arr["column"] as $name => $column) {
-				// key
-				if (isset($arr["key"][$name])) {
-					$arr["form_default"][$name]["type"] = "hidden";
-
-				// regular column
-				} else {
-					$arr["form_default"][$name]["type"] = "text";
-					$arr["form_default"][$name]["label"] = $name;
-
-					if (empty($column["nullable"])) {
-						$arr["form_default"][$name]["validation"]["required"] = true;
-					}
-				}
-			}
-
-			// submit button
-			$arr["form_default"]["s"] = array(
-				"type" => "submit",
-				"label" => "OK",
-			);
 		}
 
 		return new self($arr);
@@ -206,20 +178,6 @@ class Config extends Object {
 		}
 
 		return null;
-	}
-
-
-	/**
-	 * Get form configuration
-	 * @param string $name
-	 * @return array
-	 */
-	public function getForm($name) {
-		if (empty($this->data["form_$name"])) {
-			throw new InvalidArgumentException("Form with name '$name' does not exist.");
-		}
-
-		return $this->data["form_$name"];
 	}
 
 }
