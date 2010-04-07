@@ -58,7 +58,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$res = $this->object->getSum("visits");
 		$this->assertType("float", $res);
 		$this->assertEquals(16, $res);
-		$this->setExpectedException("Ormion\ModelException");
+		$this->setExpectedException("\ModelException");
 		$this->object->getSum("nesmysl");
 	}
 
@@ -66,7 +66,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$res = $this->object->getAvg("visits");
 		$this->assertType("float", $res);
 		$this->assertEquals(4, $res);
-		$this->setExpectedException("Ormion\ModelException");
+		$this->setExpectedException("\ModelException");
 		$this->object->getAvg("nesmysl");
 	}
 
@@ -74,7 +74,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$res = $this->object->getMin("visits");
 		$this->assertType("int", $res);
 		$this->assertEquals(0, $res);
-		$this->setExpectedException("Ormion\ModelException");
+		$this->setExpectedException("\ModelException");
 		$this->object->getMin("nesmysl");
 	}
 
@@ -82,7 +82,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$res = $this->object->getMax("visits");
 		$this->assertType("int", $res);
 		$this->assertEquals(8, $res);
-		$this->setExpectedException("Ormion\ModelException");
+		$this->setExpectedException("\ModelException");
 		$this->object->getMax("nesmysl");
 	}
 
@@ -118,7 +118,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 			$this->assertType("string", $v);
 		}
 
-		$this->setExpectedException("Ormion\ModelException");
+		$this->setExpectedException("\ModelException");
 		$this->object->fetchPairs("nesmysl", "nesmysl");
 	}
 
@@ -189,7 +189,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testQueryException() {
-		$this->setExpectedException("Ormion\ModelException");
+		$this->setExpectedException("\ModelException");
 		$this->object->orderBy("nesmysl");
 		$this->object[0]; // init
 	}

@@ -6,6 +6,7 @@ use LazyArrayList;
 use IDataSource;
 use DibiFluent;
 use DibiDriverException;
+use ModelException;
 
 /**
  * Record set

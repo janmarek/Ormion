@@ -240,7 +240,7 @@ abstract class Record extends Storage implements IRecord {
 
 		switch ($this->getState()) {
 			case self::STATE_DELETED:
-				throw new ModelException("You can't save deleted object.");
+				throw new \ModelException("You can't save deleted object.");
 				break;
 
 			case self::STATE_EXISTING:

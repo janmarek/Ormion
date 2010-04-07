@@ -7,6 +7,7 @@ use Nette\Environment;
 use MemberAccessException;
 use DibiDriverException;
 use dibi;
+use ModelException;
 
 /**
  * Mapper

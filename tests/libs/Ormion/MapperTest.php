@@ -101,7 +101,7 @@ class MapperTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testFindException() {
-		$this->setExpectedException("Ormion\ModelException");
+		$this->setExpectedException("\ModelException");
 		$this->object->find(array(
 			"nesmysl" => true,
 		));
