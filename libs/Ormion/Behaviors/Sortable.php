@@ -69,7 +69,7 @@ class Sortable extends Object implements IBehavior {
 		$record->lazyLoadValues($columns);
 
 		$fluent = $record->getMapper()->getDb()
-			->update($record->getTable(), array(
+			->update($record->getMapper()->getTable(), array(
 				$this->orderColumn . "%sql" => array("%n - 1", $this->orderColumn),
 			))
 			->where("%n > %i", $this->orderColumn, $record->{$this->orderColumn});
@@ -101,7 +101,7 @@ class Sortable extends Object implements IBehavior {
 			$db = $record->getMapper()->getDb();
 
 			$fluent = $db
-				->update($record->getTable(), array(
+				->update($record->getMapper()->getTable(), array(
 					$this->orderColumn . "%sql" => array("%n - 1", $this->orderColumn)
 				))
 				->where("%n > %i", $this->orderColumn, $original->{$this->orderColumn});
@@ -114,7 +114,7 @@ class Sortable extends Object implements IBehavior {
 			$fluent->execute();
 
 			$fluent = $db
-				->update($record->getTable(), array(
+				->update($record->getMapper()->getTable(), array(
 					$this->orderColumn . "%sql" => array("%n + 1", $this->orderColumn)
 				))
 				->where("%n >= %i", $this->orderColumn, $record->{$this->orderColumn});
