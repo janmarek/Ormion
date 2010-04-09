@@ -16,6 +16,8 @@ use DateTime;
  */
 abstract class Record extends Storage implements IRecord {
 
+	// <editor-fold defaultstate="collapsed" desc="variables">
+
 	/** @var string */
 	protected static $mapperClass = "Ormion\Mapper";
 
@@ -27,6 +29,9 @@ abstract class Record extends Storage implements IRecord {
 
 	/** @var int */
 	private $state;
+
+	/** @var array */
+	private $associationData = array();
 
 	// events
 
@@ -48,6 +53,9 @@ abstract class Record extends Storage implements IRecord {
 	/** @var array */
 	public $onAfterDelete;
 
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="construct">
 
 	/**
 	 * Constructor
@@ -72,6 +80,9 @@ abstract class Record extends Storage implements IRecord {
 		return new static($data);
 	}
 
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="mapper">
 
 	/**
 	 * Get mapper
@@ -109,6 +120,8 @@ abstract class Record extends Storage implements IRecord {
 	public static function getConfig() {
 		return static::getMapper()->getConfig();
 	}
+
+	// </editor-fold>
 	
 
 	/**
@@ -121,6 +134,8 @@ abstract class Record extends Storage implements IRecord {
 		return $this;
 	}
 
+
+	// <editor-fold defaultstate="collapsed" desc="state">
 
 	/**
 	 * Get state
@@ -157,6 +172,7 @@ abstract class Record extends Storage implements IRecord {
 		return $this;
 	}
 
+	// </editor-fold>
 
 	/**
 	 * Get primary key value
@@ -175,6 +191,7 @@ abstract class Record extends Storage implements IRecord {
 		}
 	}
 
+	// <editor-fold defaultstate="collapsed" desc="finders">
 
 	/**
 	 * Find record
@@ -230,6 +247,7 @@ abstract class Record extends Storage implements IRecord {
 		return $single ? static::find($conditions) : static::findAll($conditions);
 	}
 
+	// </editor-fold>
 
 	/**
 	 * Save record
@@ -360,7 +378,16 @@ abstract class Record extends Storage implements IRecord {
 	 */
 	public function __set($name, $value) {
 		$name = $this->fixName($name);
-		$config = $this->getConfig();
+
+		$mapper = $this->getMapper();
+
+		if ($mapper->hasAssociation($name)) {
+			$mapper->getAssociation($name)->setReferenced($this, $value);
+			$this->associationData[$name] = $value;
+			return;
+		}
+
+		$config = $mapper->getConfig();
 		$value = $this->convertValue($value, $config->getType($name), $config->isNullable($name));
 		parent::__set($name, $value);
 	}
@@ -373,6 +400,10 @@ abstract class Record extends Storage implements IRecord {
 	 */
 	public function & __get($name) {
 		$name = $this->fixName($name);
+
+		if ($this->getMapper()->hasAssociation($name)) {
+			return $this->getMapper()->getAssociation($name)->getReferenced($this);
+		}
 
 		if ($this->getState() === self::STATE_EXISTING && !parent::hasValue($name) && $this->getConfig()->isColumn($name)) {
 			$this->lazyLoadValues();

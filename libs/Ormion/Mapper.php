@@ -5,9 +5,8 @@ namespace Ormion;
 use Nette\Object;
 use Nette\Environment;
 use MemberAccessException;
-use DibiDriverException;
 use dibi;
-use ModelException;
+use Ormion\Association\IAssociation;
 
 /**
  * Mapper
@@ -16,6 +15,8 @@ use ModelException;
  * @license MIT
  */
 class Mapper extends Object implements IMapper {
+
+	// <editor-fold defaultstate="collapsed" desc="variables">
 
 	/** @var string */
 	protected $dibiConnectionName = Ormion::DEFAULT_CONNECTION_NAME;
@@ -29,7 +30,13 @@ class Mapper extends Object implements IMapper {
 	/** @var Config */
 	private $config;
 
-	
+	/** @var array */
+	private $associations = array();
+
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="construct">
+
 	/**
 	 * Construct mapper
 	 * @param string $table table name
@@ -40,6 +47,9 @@ class Mapper extends Object implements IMapper {
 		$this->rowClass = $rowClass;
 	}
 
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="getters">
 
 	/**
 	 * Get table name
@@ -67,6 +77,9 @@ class Mapper extends Object implements IMapper {
 		return dibi::getConnection($this->dibiConnectionName);
 	}
 
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="config">
 
 	/**
 	 * Get config file path
@@ -101,6 +114,44 @@ class Mapper extends Object implements IMapper {
 		return $this->config;
 	}
 
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="associations">
+
+	/**
+	 * Add association
+	 * @param string $name
+	 * @param IAssociation $association
+	 * @return Mapper
+	 */
+	public function addAssociation($name, IAssociation $association) {
+		$this->associations[$name] = $association;
+		return $this;
+	}
+
+
+	/**
+	 * Has association?
+	 * @param string $name
+	 * @return bool
+	 */
+	public function hasAssociation($name) {
+		return isset($this->associations[$name]);
+	}
+
+
+	/**
+	 * Get association
+	 * @param string $name
+	 * @return IAssociation
+	 */
+	public function getAssociation($name) {
+		return $this->associations[$name];
+	}
+
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="finders">
 
 	/**
 	 * Create base DibiFluent for find
@@ -142,7 +193,7 @@ class Mapper extends Object implements IMapper {
 		try {
 			$res = $fluent->limit(1)->execute()->setRowClass($this->rowClass)->fetch();
 		} catch (\Exception $e) {
-			throw new ModelException("Find query failed. " . $e->getMessage(), $e->getCode(), $e);
+			throw new \ModelException("Find query failed. " . $e->getMessage(), $e->getCode(), $e);
 		}
 
 		if ($res) {
@@ -175,8 +226,8 @@ class Mapper extends Object implements IMapper {
 
 		try {
 			$row = $fluent->fetch();
-		} catch (DibiDriverException $e) {
-			throw new ModelException("Unknown columns. " . $e->getMessage(), $e->getCode(), $e);
+		} catch (\DibiDriverException $e) {
+			throw new \ModelException("Unknown columns. " . $e->getMessage(), $e->getCode(), $e);
 		}
 
 		foreach ($row as $key => $val) {
@@ -184,6 +235,9 @@ class Mapper extends Object implements IMapper {
 		}
 	}
 
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="record manipulation">
 
 	/**
 	 * Inser record into database
@@ -215,10 +269,15 @@ class Mapper extends Object implements IMapper {
 			$record->setState(IRecord::STATE_EXISTING);
 			$record->clearModified();
 
+			foreach ($this->associations as $name => $association) {
+				// todo nemusel by to načítat vždycky
+				$association->saveReferenced($record, $record->$name);
+			}
+
 			$record->onAfterInsert($record);
 
 		} catch (\Exception $e) {
-			throw new ModelException("Insert failed. " . $e->getMessage(), $e->getCode(), $e);
+			throw new \ModelException("Insert failed. " . $e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -247,10 +306,15 @@ class Mapper extends Object implements IMapper {
 				$record->clearModified();
 			}
 
+			foreach ($this->associations as $name => $association) {
+				// todo nemusel by to načítat vždycky
+				$association->saveReferenced($record, $record->$name);
+			}
+
 			$record->onAfterUpdate($record);
 
 		} catch (\Exception $e) {
-			throw new ModelException("Update failed. " . $e->getMessage(), $e->getCode(), $e);
+			throw new \ModelException("Update failed. " . $e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -274,8 +338,10 @@ class Mapper extends Object implements IMapper {
 			$record->onAfterDelete($record);
 
 		} catch (Exception $e) {
-			throw new ModelException("Delete failed. " . $e->getMessage(), $e->getCode(), $e);
+			throw new \ModelException("Delete failed. " . $e->getMessage(), $e->getCode(), $e);
 		}
 	}
+
+	// </editor-fold>
 
 }
