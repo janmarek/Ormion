@@ -122,7 +122,8 @@ abstract class Record extends Storage implements IRecord {
 	}
 
 	// </editor-fold>
-	
+
+	// <editor-fold defaultstate="collapsed" desc="behaviors">
 
 	/**
 	 * Add record behavior
@@ -134,62 +135,7 @@ abstract class Record extends Storage implements IRecord {
 		return $this;
 	}
 
-
-	// <editor-fold defaultstate="collapsed" desc="state">
-
-	/**
-	 * Get state
-	 * @return int
-	 */
-	public function getState() {
-		if (isset($this->state)) {
-			return $this->state;
-		}
-
-		$config = $this->getConfig();
-
-		if ($config->isPrimaryAutoincrement()) {
-			if (parent::hasValue($config->getPrimaryColumn())) {
-				return IRecord::STATE_EXISTING;
-			} else {
-				return IRecord::STATE_NEW;
-			}
-
-		} else {
-			// TODO check in db
-			return IRecord::STATE_NEW;
-		}
-	}
-
-
-	/**
-	 * Set state
-	 * @param int $state
-	 * @return Record
-	 */
-	public function setState($state) {
-		$this->state = $state;
-		return $this;
-	}
-
 	// </editor-fold>
-
-	/**
-	 * Get primary key value
-	 * @return mixed
-	 */
-	public function getPrimary() {
-		$primaryColumns = $this->getConfig()->getPrimaryColumns();
-		if (count($primaryColumns) == 1) {
-			return $this->{$primaryColumns[0]};
-		} else {
-			$arr = array();
-			foreach ($primaryColumns as $column) {
-				$arr[$column] = $this->$column;
-			}
-			return $arr;
-		}
-	}
 
 	// <editor-fold defaultstate="collapsed" desc="finders">
 
@@ -249,6 +195,8 @@ abstract class Record extends Storage implements IRecord {
 
 	// </editor-fold>
 
+	// <editor-fold defaultstate="collapsed" desc="record manipulation">
+
 	/**
 	 * Save record
 	 * @return Record
@@ -283,6 +231,9 @@ abstract class Record extends Storage implements IRecord {
 		return $this;
 	}
 
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="values loading">
 
 	/**
 	 * Load specified values into this record
@@ -316,6 +267,79 @@ abstract class Record extends Storage implements IRecord {
 		}
 
 		return $this;
+	}
+
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="association">
+
+	/**
+	 * Is association loaded?
+	 * @param string $name
+	 * @return bool
+	 */
+	public function isAssociationLoaded($name) {
+		return array_key_exists($name, $this->associationData);
+	}
+
+	// </editor-fold>
+	
+	// <editor-fold defaultstate="collapsed" desc="state">
+
+	/**
+	 * Get state
+	 * @return int
+	 */
+	public function getState() {
+		if (isset($this->state)) {
+			return $this->state;
+		}
+
+		$config = $this->getConfig();
+
+		if ($config->isPrimaryAutoincrement()) {
+			if (parent::hasValue($config->getPrimaryColumn())) {
+				return IRecord::STATE_EXISTING;
+			} else {
+				return IRecord::STATE_NEW;
+			}
+
+		} else {
+			// TODO check in db
+			return IRecord::STATE_NEW;
+		}
+	}
+
+
+	/**
+	 * Set state
+	 * @param int $state
+	 * @return Record
+	 */
+	public function setState($state) {
+		$this->state = $state;
+		return $this;
+	}
+
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="values">
+
+	/**
+	 * Get primary key value
+	 * @return mixed
+	 */
+	public function getPrimary() {
+		$primaryColumns = $this->getConfig()->getPrimaryColumns();
+		if (count($primaryColumns) == 1) {
+			return $this->{$primaryColumns[0]};
+		} else {
+			$arr = array();
+			foreach ($primaryColumns as $column) {
+				$arr[$column] = $this->$column;
+			}
+			return $arr;
+		}
 	}
 
 
@@ -402,7 +426,11 @@ abstract class Record extends Storage implements IRecord {
 		$name = $this->fixName($name);
 
 		if ($this->getMapper()->hasAssociation($name)) {
-			return $this->getMapper()->getAssociation($name)->getReferenced($this);
+			if (!$this->isAssociationLoaded($name)) {
+				$this->associationData[$name] = $this->getMapper()->getAssociation($name)->retrieveReferenced($this);
+			}
+
+			return $this->associationData[$name];
 		}
 
 		if ($this->getState() === self::STATE_EXISTING && !parent::hasValue($name) && $this->getConfig()->isColumn($name)) {
@@ -443,5 +471,7 @@ abstract class Record extends Storage implements IRecord {
 
 		return parent::hasValue($name);
 	}
+
+	// </editor-fold>
 
 }

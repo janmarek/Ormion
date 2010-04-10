@@ -2,11 +2,10 @@
 
 namespace Ormion;
 
-use Nette\Object;
 use Nette\Environment;
-use MemberAccessException;
 use dibi;
 use Ormion\Association\IAssociation;
+use Ormion\Association\ManyToMany;
 
 /**
  * Mapper
@@ -14,7 +13,7 @@ use Ormion\Association\IAssociation;
  * @author Jan Marek
  * @license MIT
  */
-class Mapper extends Object implements IMapper {
+class Mapper extends \Nette\Object implements IMapper {
 
 	// <editor-fold defaultstate="collapsed" desc="variables">
 
@@ -45,6 +44,7 @@ class Mapper extends Object implements IMapper {
 	public function __construct($table, $rowClass) {
 		$this->table = $table;
 		$this->rowClass = $rowClass;
+		$this->loadAssociations();
 	}
 
 	// </editor-fold>
@@ -119,12 +119,34 @@ class Mapper extends Object implements IMapper {
 	// <editor-fold defaultstate="collapsed" desc="associations">
 
 	/**
+	 * Load associations from config
+	 */
+	protected function loadAssociations() {
+		foreach ($this->getConfig()->getAssociations() as $name => $association) {
+			switch ($association["type"]) {
+				case "ManyToMany":
+					$this->addAssociation($name, new ManyToMany(
+						$association["referencedEntity"],
+						$association["connectingTable"],
+						$association["localKey"],
+						$association["referencedKey"]
+					));
+					break;
+				default:
+					throw new \InvalidStateException("Unknown association type in config.");
+			}
+		}
+	}
+
+
+	/**
 	 * Add association
 	 * @param string $name
 	 * @param IAssociation $association
 	 * @return Mapper
 	 */
 	public function addAssociation($name, IAssociation $association) {
+		$association->setMapper($this);
 		$this->associations[$name] = $association;
 		return $this;
 	}
@@ -212,8 +234,8 @@ class Mapper extends Object implements IMapper {
 	public function loadValues(IRecord $record, $values = null) {
 		try {
 			$key = $record->getValues($this->getConfig()->getPrimaryColumns());
-		} catch (MemberAccessException $e) {
-			throw new InvalidStateException("Key was not set.", null, $e);
+		} catch (\MemberAccessException $e) {
+			throw new \InvalidStateException("Key was not set.", null, $e);
 		}
 
 		$fluent = $this->createFindFluent();
@@ -270,8 +292,9 @@ class Mapper extends Object implements IMapper {
 			$record->clearModified();
 
 			foreach ($this->associations as $name => $association) {
-				// todo nemusel by to načítat vždycky
-				$association->saveReferenced($record, $record->$name);
+				if ($record->isAssociationLoaded($name)) {
+					$association->saveReferenced($record, $record->$name);
+				}
 			}
 
 			$record->onAfterInsert($record);
@@ -307,8 +330,9 @@ class Mapper extends Object implements IMapper {
 			}
 
 			foreach ($this->associations as $name => $association) {
-				// todo nemusel by to načítat vždycky
-				$association->saveReferenced($record, $record->$name);
+				if ($record->isAssociationLoaded($name)) {
+					$association->saveReferenced($record, $record->$name);
+				}
 			}
 
 			$record->onAfterUpdate($record);

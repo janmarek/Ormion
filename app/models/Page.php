@@ -1,5 +1,7 @@
 <?php
 
+use Ormion\Association\ManyToMany;
+
 /**
  * Pages model
  *

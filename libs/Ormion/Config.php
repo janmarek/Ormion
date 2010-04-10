@@ -2,9 +2,7 @@
 
 namespace Ormion;
 
-use Nette\Object;
 use Nette\Config\ConfigAdapterIni;
-use InvalidArgumentException;
 use DibiTableInfo;
 
 /**
@@ -13,7 +11,7 @@ use DibiTableInfo;
  * @author Jan Marek
  * @license MIT
  */
-class Config extends Object {
+class Config extends \Nette\Object {
 
 	/** @var array */
 	private $data;
@@ -178,6 +176,15 @@ class Config extends Object {
 		}
 
 		return null;
+	}
+
+
+	/**
+	 * Get association config
+	 * @return array
+	 */
+	public function getAssociations() {
+		return isset($this->data["association"]) ? $this->data["association"] : array();
 	}
 
 }

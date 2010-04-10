@@ -39,6 +39,10 @@ class ManyToMany extends \Nette\Object implements IAssociation {
 	}
 
 	public function retrieveReferenced(IRecord $record) {
+		if ($record->getState() == IRecord::STATE_NEW) {
+			return array();
+		}
+
 		/* @var $db \DibiConnection */
 		$db = $this->mapper->getDb();
 		$ids = $db
@@ -48,7 +52,7 @@ class ManyToMany extends \Nette\Object implements IAssociation {
 			->fetchPairs();
 
 		$class = $this->entity;
-		return $class::findAll()->where("%n in %in", $class::getMapper()->getPrimaryColumn(), $ids);
+		return $class::findAll()->where("%n in %in", $class::getMapper()->getConfig()->getPrimaryColumn(), $ids);
 	}
 
 	public function saveReferenced(IRecord $record, $data) {
@@ -58,13 +62,15 @@ class ManyToMany extends \Nette\Object implements IAssociation {
 			->where("%n = %i", $this->localKey, $record->getPrimary())
 			->execute();
 
-		if (count($record)) {
+		if (count($data)) {
 			$q[] = "insert into [$this->connectingTable]";
 
 			foreach ($data as $referencedRecord) {
+				$referencedRecord->save();
+
 				$q[] = array(
-					$this->localKey = $record->getPrimary(),
-					$this->referencedKey = $referencedRecord->getPrimary(),
+					$this->localKey => $record->getPrimary(),
+					$this->referencedKey => $referencedRecord->getPrimary(),
 				);
 			}
 
