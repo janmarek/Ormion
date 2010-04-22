@@ -12,12 +12,34 @@ use Ormion\IMapper;
  */
 interface IAssociation {
 
+	/**
+	 * Set mapper
+	 * @param IMapper mapper
+	 */
 	public function setMapper(IMapper $mapper);
-	
+
+
+	/**
+	 * Set referenced
+	 * @param IRecord $record
+	 * @param mixed $data
+	 */
 	public function setReferenced(IRecord $record, $data);
 
+
+	/**
+	 * Retrieve referenced
+	 * @param IRecord $record
+	 * @return mixed
+	 */
 	public function retrieveReferenced(IRecord $record);
 
+
+	/**
+	 * Save referenced
+	 * @param IRecord $record
+	 * @param mixed $data
+	 */
 	public function saveReferenced(IRecord $record, $data);
 
 }

@@ -7,6 +7,7 @@ use dibi;
 use Ormion\Association\IAssociation;
 use Ormion\Association\ManyToMany;
 use Ormion\Association\HasOne;
+use Ormion\Association\HasMany;
 
 /**
  * Mapper
@@ -137,6 +138,12 @@ class Mapper extends \Nette\Object implements IMapper {
 						$association["connectingTable"],
 						$association["localKey"],
 						$association["referencedKey"]
+					));
+					break;
+				case "HasMany":
+					$this->addAssociation($name, new HasMany(
+						$association["referencedEntity"],
+						$association["column"]
 					));
 					break;
 				default:

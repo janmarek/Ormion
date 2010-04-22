@@ -12,17 +12,29 @@ use Ormion\IRecord;
  */
 class ManyToMany extends \Nette\Object implements IAssociation {
 
+	/** @var string */
 	private $entity;
 
+	/** @var string */
 	private $connectingTable;
 
+	/** @var string */
 	private $localKey;
 
+	/** @var string */
 	private $referencedKey;
 
 	/** @var IMapper */
 	private $mapper;
 
+
+	/**
+	 * Construct
+	 * @param string entity class name
+	 * @param string connecting table name
+	 * @param string local key
+	 * @param string referenced key
+	 */
 	public function __construct($entity, $connectingTable, $localKey, $referencedKey) {
 		$this->entity = $entity;
 		$this->connectingTable = $connectingTable;
@@ -30,13 +42,16 @@ class ManyToMany extends \Nette\Object implements IAssociation {
 		$this->referencedKey = $referencedKey;
 	}
 
+
 	public function setMapper(IMapper $mapper) {
 		$this->mapper = $mapper;
 	}
 
+
 	public function setReferenced(IRecord $record, $data) {
 		
 	}
+
 
 	public function retrieveReferenced(IRecord $record) {
 		if ($record->getState() == IRecord::STATE_NEW) {
@@ -55,6 +70,7 @@ class ManyToMany extends \Nette\Object implements IAssociation {
 		return $class::findAll()->where("%n in %in", $class::getMapper()->getConfig()->getPrimaryColumn(), $ids);
 	}
 
+	
 	public function saveReferenced(IRecord $record, $data) {
 		$db = $this->mapper->getDb();
 		$ids = $db

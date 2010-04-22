@@ -61,7 +61,7 @@ class ManyToManyTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testEmpty() {
-		$tags = Page::findByName("Clanek")->tags;
+		$tags = Page::findByName("Clanek")->Tags;
 		$this->assertType("Ormion\Collection", $tags);
 		$this->assertEquals(0, count($tags));
 	}
@@ -69,7 +69,7 @@ class ManyToManyTest extends PHPUnit_Framework_TestCase {
 	public function testSet() {
 		$page = Page::findByName("Clanek");
 		$tags = Tag::findAll();
-		$page->tags = $tags;
+		$page->Tags = $tags;
 		$page->save();
 
 		$tagIds = array_map(function ($record) { return $record->id; }, (array) $tags);
@@ -89,29 +89,29 @@ class ManyToManyTest extends PHPUnit_Framework_TestCase {
 	public function testGet() {
 		$this->testSet();
 		$page = Page::findByName("Clanek");
-		$this->assertEquals(3, count($page->tags));
+		$this->assertEquals(3, count($page->Tags));
 	}
 
 	public function testAdd() {
 		$this->testSet();
 		$page = Page::findByName("Clanek");
-		$page->tags[] = Tag::create(array(
+		$page->Tags[] = Tag::create(array(
 			"name" => "Luxusní zboží",
 			"url" => "luxusni-zbozi",
 		));
 
 		$page->save();
 
-		$this->assertEquals(4, count(Page::findByName("Clanek")->tags));
+		$this->assertEquals(4, count(Page::findByName("Clanek")->Tags));
 	}
 
 	public function testRemoveAll() {
 		$this->testSet();
 		$page = Page::findByName("Clanek");
-		$page->tags = array();
+		$page->Tags = array();
 		$page->save();
 
-		$this->assertEquals(0, count(Page::findByName("Clanek")->tags));
+		$this->assertEquals(0, count(Page::findByName("Clanek")->Tags));
 	}
 
 	public function testNewRecordWithNewReferenced() {
@@ -122,19 +122,19 @@ class ManyToManyTest extends PHPUnit_Framework_TestCase {
 			"allowed" => true,
 		));
 
-		$page->tags[] = Tag::create(array(
+		$page->Tags[] = Tag::create(array(
 			"name" => "Society",
 			"url" => "society",
 		));
 
-		$page->tags[] = Tag::create(array(
+		$page->Tags[] = Tag::create(array(
 			"name" => "Previte",
 			"url" => "previte",
 		));
 
 		$page->save();
 
-		$this->assertEquals(2, count(Page::findByName("English article")->tags));
+		$this->assertEquals(2, count(Page::findByName("English article")->Tags));
 	}
 	
 }
