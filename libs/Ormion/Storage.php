@@ -2,12 +2,7 @@
 
 namespace Ormion;
 
-use Nette\FreezableObject;
-use ArrayAccess;
-use IteratorAggregate;
 use ArrayIterator;
-use InvalidArgumentException;
-use MemberAccessException;
 use ArrayObject;
 
 /**
@@ -15,7 +10,9 @@ use ArrayObject;
  *
  * @author Jan Marek
  */
-class Storage extends FreezableObject implements ArrayAccess, IteratorAggregate {
+class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorAggregate {
+
+	// <editor-fold defaultstate="collapsed" desc="variables">
 
 	/** @var ArrayObject */
 	private $values;
@@ -41,6 +38,9 @@ class Storage extends FreezableObject implements ArrayAccess, IteratorAggregate 
 	/** @var array */
 	private $outputFilters = array();
 
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="construct">
 
 	/**
 	 * Constructor
@@ -64,6 +64,9 @@ class Storage extends FreezableObject implements ArrayAccess, IteratorAggregate 
 
 	}
 
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="getters, setters, filters">
 
 	/**
 	 * Set callback for setting values
@@ -73,7 +76,7 @@ class Storage extends FreezableObject implements ArrayAccess, IteratorAggregate 
 	 */
 	public function registerSetter($name, $callback) {
 		if (!is_callable($callback)) {
-			throw new InvalidArgumentException("Argument is not callable.");
+			throw new \InvalidArgumentException("Argument is not callable.");
 		}
 
 		$this->setters[$this->fixName($name)] = $callback;
@@ -89,7 +92,7 @@ class Storage extends FreezableObject implements ArrayAccess, IteratorAggregate 
 	 */
 	public function registerGetter($name, $callback) {
 		if (!is_callable($callback)) {
-			throw new InvalidArgumentException("Argument is not callable.");
+			throw new \InvalidArgumentException("Argument is not callable.");
 		}
 
 		$this->getters[$this->fixName($name)] = $callback;
@@ -105,7 +108,7 @@ class Storage extends FreezableObject implements ArrayAccess, IteratorAggregate 
 	 */
 	public function addInputFilter($name, $callback) {
 		if (!is_callable($callback)) {
-			throw new InvalidArgumentException("Argument is not callable.");
+			throw new \InvalidArgumentException("Argument is not callable.");
 		}
 
 		$this->inputFilters[$this->fixName($name)][] = $callback;
@@ -121,23 +124,16 @@ class Storage extends FreezableObject implements ArrayAccess, IteratorAggregate 
 	 */
 	public function addOutputFilter($name, $callback) {
 		if (!is_callable($callback)) {
-			throw new InvalidArgumentException("Argument is not callable.");
+			throw new \InvalidArgumentException("Argument is not callable.");
 		}
 
 		$this->outputFilters[$this->fixName($name)][] = $callback;
 		return $this;
 	}
 
+	// </editor-fold>
 
-	/**
-	 * Get data storage
-	 * @return ArrayObject
-	 * @deprecated
-	 */
-	public function getStorage() {
-		return $this->values;
-	}
-
+	// <editor-fold defaultstate="collapsed" desc="modified values">
 
 	/**
 	 * Set all values as unmodified
@@ -165,6 +161,48 @@ class Storage extends FreezableObject implements ArrayAccess, IteratorAggregate 
 		return isset($this->modified[$name]);
 	}
 
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="aliases">
+
+	/**
+	 * Set alias
+	 * @param string $alias
+	 * @param string $name
+	 * @return OrmionStorage
+	 */
+	public function setAlias($alias, $name) {
+		$this->aliases[$alias] = $name;
+		return $this;
+	}
+
+
+	/**
+	 * Normalize column name (replace alias)
+	 * @param string $name
+	 * @return string
+	 */
+	protected function fixName($name) {
+		if (isset($this->aliases[$name])) {
+			return $this->aliases[$name];
+		}
+
+		return $name;
+	}
+
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="data">
+
+	/**
+	 * Get data storage
+	 * @return ArrayObject
+	 * @deprecated
+	 */
+	public function getStorage() {
+		return $this->values;
+	}
+
 
 	/**
 	 * Set default value
@@ -175,18 +213,6 @@ class Storage extends FreezableObject implements ArrayAccess, IteratorAggregate 
 	public function setDefaultValue($name, $value) {
 		// todo vyhazovat výjimku když je pozdě
 		$this->defaults[$this->fixName($name)] = $value;
-		return $this;
-	}
-
-
-	/**
-	 * Set alias
-	 * @param string $alias
-	 * @param string $name
-	 * @return OrmionStorage
-	 */
-	public function setAlias($alias, $name) {
-		$this->aliases[$alias] = $name;
 		return $this;
 	}
 
@@ -231,20 +257,6 @@ class Storage extends FreezableObject implements ArrayAccess, IteratorAggregate 
 
 
 	/**
-	 * Normalize column name (replace alias)
-	 * @param string $name
-	 * @return string
-	 */
-	protected function fixName($name) {
-		if (isset($this->aliases[$name])) {
-			return $this->aliases[$name];
-		}
-
-		return $name;
-	}
-
-
-	/**
 	 * Magic getter for field value, do not call directly
 	 * @param string $name
 	 * @return mixed
@@ -258,7 +270,7 @@ class Storage extends FreezableObject implements ArrayAccess, IteratorAggregate 
 			if (array_key_exists($name, $this->values)) {
 				$ret = $this->values[$name];
 			} else {
-				throw new MemberAccessException("Value '$name' was not set.");
+				throw new \MemberAccessException("Value '$name' was not set.");
 			}
 		}
 
@@ -329,8 +341,9 @@ class Storage extends FreezableObject implements ArrayAccess, IteratorAggregate 
 		return array_key_exists($this->fixName($name), $this->values);
 	}
 
+	// </editor-fold>
 
-	// ArrayAccess
+	// <editor-fold defaultstate="collapsed" desc="ArrayAccess">
 
 	public function offsetExists($offset) {
 		return $this->__isset($offset);
@@ -351,11 +364,14 @@ class Storage extends FreezableObject implements ArrayAccess, IteratorAggregate 
 		$this->__unset($offset);
 	}
 
-	
-	// IteratorAggregate
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="IteratorAggregate">
 
 	public function getIterator() {
 		return new ArrayIterator($this->getValues());
 	}
+
+	// </editor-fold>
 	
 }
