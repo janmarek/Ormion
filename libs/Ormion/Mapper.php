@@ -6,6 +6,7 @@ use Nette\Environment;
 use dibi;
 use Ormion\Association\IAssociation;
 use Ormion\Association\ManyToMany;
+use Ormion\Association\HasOne;
 
 /**
  * Mapper
@@ -124,6 +125,12 @@ class Mapper extends \Nette\Object implements IMapper {
 	protected function loadAssociations() {
 		foreach ($this->getConfig()->getAssociations() as $name => $association) {
 			switch ($association["type"]) {
+				case "HasOne":
+					$this->addAssociation($name, new HasOne(
+						$association["referencedEntity"],
+						$association["column"]
+					));
+					break;
 				case "ManyToMany":
 					$this->addAssociation($name, new ManyToMany(
 						$association["referencedEntity"],
