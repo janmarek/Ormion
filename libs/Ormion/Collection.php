@@ -71,6 +71,14 @@ class Collection extends LazyArrayList implements IDataSource {
 
 
 	/**
+	 * To string
+	 */
+	public function  __toString() {
+		return (string) $this->fluent;
+	}
+
+
+	/**
 	 * Count items in collection
 	 * @return int
 	 */
