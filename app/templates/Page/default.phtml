@@ -1,1 +1,26 @@
 {block content}
+
+<h1>{$page->name}</h1>
+
+<p><a href="{link edit $page->id}">Edit</a> | <a href="{link delete $page->id}">Delete</a></p>
+
+<p>{$page->description}</p>
+<p>{$page->text}</p>
+
+<p>Created: {$page->created|date}, visited: {$page->visits}×</p>
+
+<p n:if="count($page->Tags) > 0">
+	Tags:
+	{foreach $page->Tags as $tag}
+	<a href="{plink Tag:detail $tag->url}">{$tag->name}</a>{if !$iterator->last}, {/if}
+	{/foreach}
+</p>
+
+<h2>Add comment</h2>
+
+{widget addCommentForm}
+
+<h2>Comments</h2>
+<p n:foreach="$page->Comments->orderBy('id desc') as $comment">
+	<strong>{$comment->name}:</strong> {$comment->text}
+</p>

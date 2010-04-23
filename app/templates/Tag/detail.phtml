@@ -1,0 +1,8 @@
+{block content}
+<h1>{$tag->name}</h1>
+
+<ul>
+	<li n:foreach="$tag->Pages->orderBy('created') as $page">
+		<a href="{plink Page: $page->id}">{$page->name}</a> - {$page->description} ({$page->created|date})
+	</li>
+</ul>

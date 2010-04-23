@@ -7,6 +7,8 @@ use Nette\Application\Presenter;
  */
 abstract class BasePresenter extends Presenter {
 
-
+	protected function beforeRender() {
+		$this->template->pages = Page::findAll()->orderBy("created");
+	}
 
 }

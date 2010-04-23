@@ -2,10 +2,25 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>ormion</title>
+	<title>{ifset $title}{$title} - {/if}ormion</title>
 </head>
 
 <body>
+	{if $flashes}
+		<p n:foreach="$flashes as $flash">{$flash->message}</p>
+		<hr>
+	{/if}
+
+	<p>
+		<a href="{plink Homepage:}">Home</a> |
+		{foreach $pages as $page}
+		<a href="{plink Page: $page->id}">{$page->name}</a> |
+		{/foreach}
+		<a href="{plink Page:add}">Add page</a>
+	</p>
+
+	<hr>
+
 	@{include #content}
 </body>
 </html>

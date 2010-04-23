@@ -1,0 +1,12 @@
+{block content}
+<h1>{$title}</h1>
+
+<h2>Add tag</h2>
+{widget addTagForm}
+
+<h2>Tags</h2>
+<ul>
+	<li n:foreach="$tags as $tag">
+		<a href="{link detail $tag->url}">{$tag->name}</a> [<a href="{link delete! $tag->id}">delete</a>]
+	</li>
+</ul>

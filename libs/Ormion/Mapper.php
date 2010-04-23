@@ -147,7 +147,7 @@ class Mapper extends \Nette\Object implements IMapper {
 					));
 					break;
 				default:
-					throw new \InvalidStateException("Unknown association type in config.");
+					throw new \InvalidStateException("Unknown association type '$association[type]' in config $this->rowClass::$name.");
 			}
 		}
 	}
