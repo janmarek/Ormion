@@ -1,13 +1,11 @@
 <?php
 
-use Ormion\Association\ManyToMany;
-
 /**
  * Pages model
  *
- * @author Honza
+ * @author Jan Marek
+ * @license MIT
  */
-
 class Page extends Ormion\Record {
 
 	/** @var string */
