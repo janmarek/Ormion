@@ -2,7 +2,6 @@
 
 namespace Ormion;
 
-use LazyArrayList;
 use IDataSource;
 use DibiFluent;
 use DibiDriverException;
@@ -14,10 +13,13 @@ use ModelException;
  * @author Jan Marek
  * @license MIT
  */
-class Collection extends LazyArrayList implements IDataSource {
+class Collection extends BaseCollection implements IDataSource {
 
 	/** @var DibiFluent */
 	private $fluent;
+
+	/** @var bool */
+	private $loaded = false;
 
 	
 	/**
@@ -26,17 +28,32 @@ class Collection extends LazyArrayList implements IDataSource {
 	 * @param string $rowClass
 	 */
 	public function __construct(DibiFluent $fluent, $rowClass) {
-		parent::__construct(null, $rowClass);
+		parent::__construct($rowClass);
 		$this->fluent = $fluent;
 	}
 
 
 	/**
-	 * Load items
+	 * Get values
+	 * @return array
 	 */
-	protected function load() {
-		$this->import($this->fetchAll());
-	}
+	public function toArray() {
+		if (!$this->loaded) {
+			$this->setArray($this->fetchAll());
+           	$this->loaded = true;
+		}
+		
+        return parent::toArray();
+    }
+
+
+	/**
+	 * Is collection loaded?
+	 * @return bool
+	 */
+	public function isLoaded() {
+        return $this->loaded;
+    }
 
 
 	/**
@@ -47,7 +64,7 @@ class Collection extends LazyArrayList implements IDataSource {
 	 */
 	public function __call($name, $args) {
 		call_user_func_array(array($this->fluent, $name), $args);
-		$this->setLoaded(false);
+		$this->loaded = false;
 		return $this;
 	}
 
@@ -83,7 +100,7 @@ class Collection extends LazyArrayList implements IDataSource {
 	 * @return int
 	 */
 	public function count() {
-		return $this->isLoaded() ? parent::count() : $this->fluent->count();
+		return $this->loaded ? parent::count() : $this->fluent->count();
 	}
 
 

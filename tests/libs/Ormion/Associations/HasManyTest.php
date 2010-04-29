@@ -3,14 +3,15 @@
 /**
  * HasMany test
  *
- * @author Jan Marek
- *
  * @backupStaticAttributes disabled
  * @backupGlobals disabled
  */
 class HasManyTest extends PHPUnit_Framework_TestCase {
 
-	protected function setUp() {
+	protected $backupGlobals = false;
+	protected $backupStaticAttributes = false;
+
+  	protected function setUp() {
 		$this->db = dibi::getConnection("ormion");
 		$this->db->delete("comments")->execute();
 		$this->db->delete("pages")->execute();

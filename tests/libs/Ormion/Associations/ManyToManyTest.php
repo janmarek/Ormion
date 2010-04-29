@@ -3,12 +3,13 @@
 /**
  * ManyToMany test
  *
- * @author Jan Marek
- *
  * @backupStaticAttributes disabled
  * @backupGlobals disabled
  */
 class ManyToManyTest extends PHPUnit_Framework_TestCase {
+
+	protected $backupGlobals = false;
+	protected $backupStaticAttributes = false;
 
 	protected function setUp() {
 		$this->db = dibi::getConnection("ormion");
@@ -72,7 +73,7 @@ class ManyToManyTest extends PHPUnit_Framework_TestCase {
 		$page->Tags = $tags;
 		$page->save();
 
-		$tagIds = array_map(function ($record) { return $record->id; }, (array) $tags);
+		$tagIds = array_map(function ($record) { return $record->id; }, $tags->toArray());
 
 		$q = $this->db->select("*")->from("connections")->execute();
 		$q->detectTypes();

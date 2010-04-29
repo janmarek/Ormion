@@ -157,7 +157,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		// test result
 		$i = 0;
 		foreach ($this->object as $item) {
-			$this->assertEquals(0, $item->allowed);
+			$this->assertEquals(false, $item->allowed);
 			$i++;
 		}
 
