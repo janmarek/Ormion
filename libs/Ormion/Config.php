@@ -57,12 +57,16 @@ class Config extends \Nette\Object {
 		foreach ($tableInfo->getColumns() as $column) {
 			$name = $column->getName();
 			$type = $column->getType();
-			
+
           	if ($type === dibi::INTEGER && $column->getSize() === 1) {
 				$type = dibi::BOOL;
 			}
 
 			$arr["column"][$name]["type"] = $type;
+
+			if ($type === dibi::TEXT && $column->getNativeType() === "VARCHAR") {
+				$arr["column"][$name]["size"] = $column->getSize();
+           	}
 
 			if ($column->isNullable()) {
 				$arr["column"][$name]["nullable"] = true;
