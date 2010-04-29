@@ -4,6 +4,7 @@ namespace Ormion;
 
 use Nette\Config\ConfigAdapterIni;
 use DibiTableInfo;
+use dibi;
 
 /**
  * Ormion config
@@ -55,7 +56,13 @@ class Config extends \Nette\Object {
 		// columns
 		foreach ($tableInfo->getColumns() as $column) {
 			$name = $column->getName();
-			$arr["column"][$name]["type"] = $column->getType();
+			$type = $column->getType();
+			
+          	if ($type === dibi::INTEGER && $column->getSize() === 1) {
+				$type = dibi::BOOL;
+			}
+
+			$arr["column"][$name]["type"] = $type;
 
 			if ($column->isNullable()) {
 				$arr["column"][$name]["nullable"] = true;

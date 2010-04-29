@@ -67,8 +67,10 @@ class ConfigTest extends PHPUnit_Framework_TestCase {
 		);
 
 
+		$this->assertEquals(dibi::TEXT, $cfg->getType("name"));
 		$this->assertEquals(dibi::INTEGER, $cfg->getType("id"));
 		$this->assertEquals(dibi::TIME, $cfg->getType("created"));
+		$this->assertEquals(dibi::BOOL, $cfg->getType("allowed"));
 
 
 		$this->assertTrue($cfg->isNullable("description"));
@@ -107,6 +109,7 @@ class ConfigTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(dibi::INTEGER, $this->object->getType("id"));
 		$this->assertEquals(dibi::INTEGER, $this->object->getType("number"));
 		$this->assertEquals(dibi::TIME, $this->object->getType("created"));
+		$this->assertEquals(dibi::BOOL, $this->object->getType("allowed"));
 		$this->assertEquals(null, $this->object->getType("nesmysl"));
 	}
 
