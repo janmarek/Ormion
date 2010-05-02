@@ -40,13 +40,19 @@ class TagPresenter extends BasePresenter {
 		$form->onSubmit[] = function ($form) use ($presenter) {
 			$name = $form->values["name"];
 
-			Tag::create(array(
+			$tag = Tag::create(array(
 				"name" => $name,
 				"url" => String::webalize($name),
-			))->save();
+			));
 
-			$presenter->flashMessage("Tag was added!");
-			$presenter->redirect("default");
+			try {
+				$tag->save();
+
+				$presenter->flashMessage("Tag was added!");
+				$presenter->redirect("default");
+			} catch (\ModelException $e) {
+				$tag->addErrorsToForm($form);
+			}
 		};
 
 		return $form;

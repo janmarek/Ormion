@@ -7,6 +7,7 @@ use InvalidStateException;
 use InvalidArgumentException;
 use Ormion\Behavior\IBehavior;
 use DateTime;
+use Nette\Forms\Form;
 
 /**
  * Ormion record
@@ -137,6 +138,44 @@ abstract class Record extends Storage implements IRecord {
 
 	// </editor-fold>
 
+	// <editor-fold defaultstate="collapsed" desc="validation">
+
+	/**
+	 * Is record valid?
+	 * @return bool
+	 */
+	public function isValid() {
+		return count($this->getRuleViolations()) === 0;
+    }
+
+
+	/**
+	 * Get rule violations
+	 * @return array
+	 */
+	public function getRuleViolations() {
+        return array();
+    }
+
+
+	/**
+	 * Add errors to form (form helper)
+	 * @param Form form
+	 */
+	public function addErrorsToForm(Form $form) {
+        foreach ($this->getRuleViolations() as $issue) {
+			$name = $issue->getName();
+
+			if ($name !== null && isset($form[$name])) {
+				$form[$name]->addError($issue->getMessage());
+           	} else {
+				$form->addError($issue->getMessage());
+			}
+		}
+    }
+
+  	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="finders">
 
 	/**
@@ -203,6 +242,10 @@ abstract class Record extends Storage implements IRecord {
 	 */
 	public function save() {
 		$this->updating();
+
+		if (!$this->isValid()) {
+			throw new \ModelException("Record is not valid and cannot be saved.");
+       	}
 
 		switch ($this->getState()) {
 			case self::STATE_DELETED:

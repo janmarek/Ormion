@@ -56,15 +56,21 @@ class PagePresenter extends BasePresenter {
 
 		$form->onSubmit[] = function ($form) use ($presenter) {
 			$values = $form->values;
-			
+
 			$page = Page::create($values);
 			$page->Tags = array_map(function ($id) {
 				return Tag::create($id);
 			}, $values["tags"]);
-			$page->save();
 
-			$presenter->flashMessage("Page '$page->name' was added!");
-			$presenter->redirect("default", array("id" => $page->id));
+			try {
+				$page->save();
+
+				$presenter->flashMessage("Page '$page->name' was added!");
+				$presenter->redirect("default", array("id" => $page->id));
+				
+			} catch (\ModelException $e) {
+				$page->addErrorsToForm($form);
+			}
 		};
 	}
 
