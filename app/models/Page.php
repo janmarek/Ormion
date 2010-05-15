@@ -8,6 +8,9 @@ use Ormion\Validation\Validators;
  *
  * @author Jan Marek
  * @license MIT
+ *
+ * @manyToMany(name = Tags, referencedEntity = Tag, connectingTable = connections, localKey = pageId, referencedKey = tagId)
+ * @hasMany(name = Comments, referencedEntity = Comment, column = page)
  */
 class Page extends Ormion\Record {
 

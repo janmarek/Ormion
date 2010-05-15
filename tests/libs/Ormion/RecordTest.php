@@ -41,9 +41,6 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 			"text" => "Duchaplný text.",
 			"allowed" => true,
 		));
-
-		Environment::setVariable("ormionConfigDir", "%tempDir%/testOrmionConfig");
-		@unlink(Environment::getVariable("ormionConfigDir") . "/pages.ini");
 		$this->object = new Page;
 	}
 

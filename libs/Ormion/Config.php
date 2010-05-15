@@ -28,27 +28,6 @@ class Config extends \Nette\Object {
 
 
 	/**
-	 * Save config to ini file
-	 * @param string $file
-	 * @return Config
-	 */
-	public function save($file) {
-		ConfigAdapterIni::save($this->data, $file);
-		return $this;
-	}
-
-
-	/**
-	 * Create config from ini file
-	 * @param string $file
-	 * @return Config
-	 */
-	public static function fromFile($file) {
-		return new self(ConfigAdapterIni::load($file));
-	}
-
-
-	/**
 	 * Create Config from database table info
 	 * @return Config
 	 */

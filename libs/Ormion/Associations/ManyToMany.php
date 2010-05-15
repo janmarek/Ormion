@@ -1,7 +1,5 @@
 <?php
 
-namespace Ormion\Association;
-
 use Ormion\IMapper;
 use Ormion\IRecord;
 
@@ -10,37 +8,22 @@ use Ormion\IRecord;
  *
  * @author Jan Marek
  */
-class ManyToMany extends \Nette\Object implements IAssociation {
+class ManyToManyAnnotation extends Ormion\Association\BaseAssociation {
 
 	/** @var string */
-	private $entity;
+	protected $referencedEntity;
 
 	/** @var string */
-	private $connectingTable;
+	protected $connectingTable;
 
 	/** @var string */
-	private $localKey;
+	protected $localKey;
 
 	/** @var string */
-	private $referencedKey;
+	protected $referencedKey;
 
 	/** @var IMapper */
-	private $mapper;
-
-
-	/**
-	 * Construct
-	 * @param string entity class name
-	 * @param string connecting table name
-	 * @param string local key
-	 * @param string referenced key
-	 */
-	public function __construct($entity, $connectingTable, $localKey, $referencedKey) {
-		$this->entity = $entity;
-		$this->connectingTable = $connectingTable;
-		$this->localKey = $localKey;
-		$this->referencedKey = $referencedKey;
-	}
+	protected $mapper;
 
 
 	public function setMapper(IMapper $mapper) {
@@ -66,7 +49,7 @@ class ManyToMany extends \Nette\Object implements IAssociation {
 			->where("%n = %i", $this->localKey, $record->getPrimary())
 			->fetchPairs();
 
-		$class = $this->entity;
+		$class = $this->referencedEntity;
 		return $class::findAll()->where("%n in %in", $class::getMapper()->getConfig()->getPrimaryColumn(), $ids);
 	}
 

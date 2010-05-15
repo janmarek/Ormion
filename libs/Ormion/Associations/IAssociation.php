@@ -10,9 +10,16 @@ use Ormion\IMapper;
  * @author Jan Marek
  * @license MIT
  */
-interface IAssociation {
+interface IAssociation extends \Nette\Reflection\IAnnotation {
 
 	/**
+	 * Get name
+	 * @return string
+	 */
+	public function getName();
+
+
+  	/**
 	 * Set mapper
 	 * @param IMapper mapper
 	 */

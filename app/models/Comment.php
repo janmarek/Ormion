@@ -5,6 +5,8 @@
  *
  * @author Jan Marek
  * @license MIT
+ *
+ * @hasOne(name = Page, referencedEntity = Page, column = page)
  */
 class Comment extends Ormion\Record {
 

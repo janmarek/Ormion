@@ -1,7 +1,5 @@
 <?php
 
-namespace Ormion\Association;
-
 use Ormion\IMapper;
 use Ormion\IRecord;
 
@@ -11,27 +9,16 @@ use Ormion\IRecord;
  * @author Jan Marek
  * @license MIT
  */
-class HasMany extends \Nette\Object implements IAssociation {
+class HasManyAnnotation extends Ormion\Association\BaseAssociation {
 
 	/** @var string */
-	private $referencedEntity;
+	protected $referencedEntity;
 
 	/** @var string */
-	private $column;
+	protected $column;
 
 	/** @var IMapper */
-	private $mapper;
-
-
-	/**
-	 * Construct
-	 * @param string referenced entity
-	 * @param string column
-	 */
-	public function __construct($referencedEntity, $column) {
-		$this->referencedEntity = $referencedEntity;
-		$this->column = $column;
-	}
+	protected $mapper;
 
 
 	public function setMapper(IMapper $mapper) {

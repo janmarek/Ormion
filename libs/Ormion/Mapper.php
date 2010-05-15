@@ -5,9 +5,7 @@ namespace Ormion;
 use Nette\Environment;
 use dibi;
 use Ormion\Association\IAssociation;
-use Ormion\Association\ManyToMany;
-use Ormion\Association\HasOne;
-use Ormion\Association\HasMany;
+use Nette\Reflection\ClassReflection;
 
 /**
  * Mapper
@@ -83,15 +81,6 @@ class Mapper extends \Nette\Object implements IMapper {
 
 	// <editor-fold defaultstate="collapsed" desc="config">
 
-	/**
-	 * Get config file path
-	 * @return string
-	 */
-	public function getConfigFilePath() {
-		$dir = Environment::getVariable("ormionConfigDir", APP_DIR . "/models/config");
-		return $dir . "/" . $this->table . ".ini";
-	}
-
 
 	/**
 	 * Get table config
@@ -99,17 +88,15 @@ class Mapper extends \Nette\Object implements IMapper {
 	 */
 	public function getConfig() {
 		if (empty($this->config)) {
-			$filePath = $this->getConfigFilePath();
+			$cacheKey = get_class($this) . "-" . $this->table . "-" . $this->rowClass;
+			$cache = Environment::getCache("Ormion");
 
-			// existing file
-			if (file_exists($filePath)) {
-				$this->config = Config::fromFile($filePath);
-
-			// create config
+			if (isset($cache[$cacheKey])) {
+				$this->config = $cache[$cacheKey];
 			} else {
 				$tableInfo = $this->getDb()->getDatabaseInfo()->getTable($this->table);
 				$this->config = Config::fromTableInfo($tableInfo);
-				$this->config->save($filePath);
+				$cache[$cacheKey] = $this->config;
 			}
 		}
 
@@ -124,30 +111,13 @@ class Mapper extends \Nette\Object implements IMapper {
 	 * Load associations from config
 	 */
 	protected function loadAssociations() {
-		foreach ($this->getConfig()->getAssociations() as $name => $association) {
-			switch ($association["type"]) {
-				case "HasOne":
-					$this->addAssociation($name, new HasOne(
-						$association["referencedEntity"],
-						$association["column"]
-					));
-					break;
-				case "ManyToMany":
-					$this->addAssociation($name, new ManyToMany(
-						$association["referencedEntity"],
-						$association["connectingTable"],
-						$association["localKey"],
-						$association["referencedKey"]
-					));
-					break;
-				case "HasMany":
-					$this->addAssociation($name, new HasMany(
-						$association["referencedEntity"],
-						$association["column"]
-					));
-					break;
-				default:
-					throw new \InvalidStateException("Unknown association type '$association[type]' in config $this->rowClass::$name.");
+		$annotations = ClassReflection::from($this->rowClass)->getAnnotations();
+		
+		foreach ($annotations as $k => $v) {
+			if ($v[0] instanceof \Ormion\Association\IAssociation) {
+				foreach ($v as $association) {
+					$this->addAssociation($association->getName(), $association);
+               	}
 			}
 		}
 	}

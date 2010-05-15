@@ -51,15 +51,9 @@ class ConfigTest extends PHPUnit_Framework_TestCase {
 		));
 	}
 
-	private function generatedConfig($useFile) {
+	private function generatedConfig() {
 		$tableInfo = dibi::getConnection("ormion")->getDatabaseInfo()->getTable("pages");
 		$cfg = Ormion\Config::fromTableInfo($tableInfo);
-
-		if ($useFile) {
-			$filePath = APP_DIR . "/temp/" . md5(uniqid() . time()) . ".ini";
-			$cfg->save($filePath);
-			$cfg = Ormion\Config::fromFile($filePath);
-		}
 
 		$this->assertEquals(
 			array("id", "name", "description", "text", "visits", "created", "allowed"),
@@ -80,20 +74,11 @@ class ConfigTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue($cfg->isPrimaryAutoIncrement());
 
 		$this->assertEquals("id", $cfg->getPrimaryColumn());
-
-		if ($useFile) {
-			unlink($filePath);
-		}
 	}
 
 
 	public function testFromTableInfo() {
 		$this->generatedConfig(false);
-	}
-
-
-	public function testSaveAndFromFile() {
-		$this->generatedConfig(true);
 	}
 
 

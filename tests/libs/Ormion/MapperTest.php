@@ -46,8 +46,6 @@ class MapperTest extends PHPUnit_Framework_TestCase {
 			"allowed" => true,
 		));
 
-		Environment::setVariable("ormionConfigDir", "%tempDir%");
-		unlink(Environment::getVariable("ormionConfigDir") . "/pages.ini");
 		$this->object = new Ormion\Mapper("pages", "Page");
 	}
 
