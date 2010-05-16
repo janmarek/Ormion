@@ -105,12 +105,16 @@ abstract class Record extends Storage implements IRecord {
 	 * @return IMapper
 	 */
 	public static function createMapper() {
-		if (empty(static::$table)) {
+		if (isset(static::$table)) {
+			$table = static::$table;
+		} elseif (static::getReflection()->getAnnotation("table") != null) {
+			$table = static::getReflection()->getAnnotation("table");
+       	} else {
 			throw new InvalidStateException("Table name is not set.");
 		}
 
 		$cls = static::$mapperClass;
-		return new $cls(static::$table, get_called_class());
+		return new $cls($table, get_called_class());
 	}
 
 

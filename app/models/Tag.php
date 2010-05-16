@@ -9,12 +9,10 @@ use Ormion\Validation\Validators;
  * @author Jan Marek
  * @license MIT
  *
+ * @table tags
  * @manyToMany(name = Pages, referencedEntity = Page, connectingTable = connections, referencedKey = pageId, localKey = tagId)
  */
 class Tag extends Ormion\Record {
-
-	protected static $table = "tags";
-
 
 	/**
 	 * Validate record

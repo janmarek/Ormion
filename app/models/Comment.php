@@ -6,11 +6,9 @@
  * @author Jan Marek
  * @license MIT
  *
+ * @table comments
  * @hasOne(name = Page, referencedEntity = Page, column = page)
  */
 class Comment extends Ormion\Record {
-
-	/** @var string */
-	protected static $table = "comments";
 
 }
