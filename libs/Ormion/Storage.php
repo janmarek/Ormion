@@ -49,7 +49,7 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 	public function __construct($data = null) {
 		$this->init();
 
-		$this->values = new ArrayObject($this->defaults);
+		$this->values = new ArrayObject(array());
 
 		if ($data !== null) {
 			$this->setValues($data);
@@ -215,6 +215,15 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 		$this->defaults[$this->fixName($name)] = $value;
 		return $this;
 	}
+
+
+	/**
+	 * Get default values
+	 * @return array default values
+	 */
+	public function getDefaultValues() {
+       return $this->defaults;
+    }
 
 
 	/**
