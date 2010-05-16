@@ -16,6 +16,14 @@ use Ormion\Validation\Validators;
 class Page extends Ormion\Record {
 
 	/**
+	 * Increase visit count
+	 */
+	public function increaseVisits() {
+		$this->visits++; // do not try this at home
+		$this->save();
+	}
+
+	/**
 	 * Validate record
 	 * @return array
 	 */

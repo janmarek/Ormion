@@ -7,8 +7,7 @@ class PagePresenter extends BasePresenter {
 
 	public function renderDefault($id) {
 		$page = Page::find($id);
-		$page->visits++;
-		$page->save();
+		$page->increaseVisits();
 
 		$this->template->title = $page->name;
 		$this->template->page = $page;
@@ -55,14 +54,14 @@ class PagePresenter extends BasePresenter {
 		$presenter = $this;
 
 		$form->onSubmit[] = function ($form) use ($presenter) {
-			$values = $form->values;
-
-			$page = Page::create($values);
-			$page->Tags = array_map(function ($id) {
-				return Tag::create($id);
-			}, $values["tags"]);
-
 			try {
+				$values = $form->values;
+
+				$page = Page::create($values);
+				$page->Tags = array_map(function ($id) {
+					return Tag::create($id);
+				}, $values["tags"]);
+
 				$page->save();
 
 				$presenter->flashMessage("Page '$page->name' was added!");
@@ -91,14 +90,18 @@ class PagePresenter extends BasePresenter {
 		$form->onSubmit[] = function ($form) use ($presenter) {
 			$values = $form->values;
 
-			$page = Page::create($values);
-			$page->Tags = array_map(function ($id) {
-				return Tag::create($id);
-			}, $values["tags"]);
-			$page->save();
+			try {
+				$page = Page::create($values);
+				$page->Tags = array_map(function ($id) {
+					return Tag::create($id);
+				}, $values["tags"]);
+				$page->save();
 
-			$presenter->flashMessage("Page '$page->name' was changed!");
-			$presenter->redirect("default", array("id" => $page->id));
+				$presenter->flashMessage("Page '$page->name' was changed!");
+				$presenter->redirect("default", array("id" => $page->id));
+			} catch (ModelException $e) {
+				$page->addErrorsToForm($form);
+			}
 		};
 	}
 
@@ -115,13 +118,18 @@ class PagePresenter extends BasePresenter {
 		$presenter = $this;
 
 		$form->onSubmit[] = function ($form) use ($presenter) {
-			$values = $form->values;
-			$values["page"] = $presenter->getParam("id");
+			try {
+				$values = $form->values;
+				$values["page"] = $presenter->getParam("id");
 
-			Comment::create($values)->save();
+				$comment = Comment::create($values);
+				$comment->save();
 
-			$presenter->flashMessage("Comment added!");
-			$presenter->redirect("this");
+				$presenter->flashMessage("Comment added!");
+				$presenter->redirect("this");
+			} catch (ModelException $e) {
+				$comment->addErrorsToForm($form);
+			}
 		};
 
 		return $form;
