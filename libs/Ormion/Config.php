@@ -25,7 +25,7 @@ class Config extends \Nette\Object {
 	public function __construct($data) {
 		$this->data = $data;
 	}
-
+	
 
 	/**
 	 * Create Config from database table info
@@ -112,6 +112,17 @@ class Config extends \Nette\Object {
 
 
 	/**
+	 * Get size
+	 * @param string column name
+	 * @return int|null
+	 */
+	public function getSize($name) {
+		$column = $this->getColumn($name);
+		return $column ? $column["size"] : null;
+	}
+
+
+	/**
 	 * Is column nullable
 	 * @param string $name
 	 * @return bool
@@ -166,15 +177,6 @@ class Config extends \Nette\Object {
 		}
 
 		return null;
-	}
-
-
-	/**
-	 * Get association config
-	 * @return array
-	 */
-	public function getAssociations() {
-		return isset($this->data["association"]) ? $this->data["association"] : array();
 	}
 
 }

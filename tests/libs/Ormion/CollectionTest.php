@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/../../../document_root/index.php";
+
 use Ormion\Record;
 
 /**
@@ -106,7 +108,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$res = $this->object->fetchAssoc("name,#");
 		$this->assertType("Page", $res["Clanek"][0]);
 	}
-	
+
 	public function testFetchPairs() {
 		foreach ($this->object->fetchPairs("id", "name") as $k => $v) {
 			$this->assertType("int", $k);
@@ -136,7 +138,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	public function testCount() {
 		$this->assertEquals(4, count($this->object));
 		$this->assertFalse($this->object->isLoaded());
-		
+
 		$this->object[0]; // initialize collection
 		$this->assertEquals(4, count($this->object));
 		$this->assertTrue($this->object->isLoaded());

@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/../../../document_root/index.php";
+
 use Nette\Environment;
 
 /**
@@ -85,7 +87,7 @@ class MapperTest extends PHPUnit_Framework_TestCase {
 		$id = $this->db->getInsertId();
 
 		$o = $this->object->find($id);
-		
+
 		$this->assertType("Page", $o);
 		$this->assertEquals("Find test", $o->name);
 	}

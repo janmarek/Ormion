@@ -116,23 +116,11 @@ class Mapper extends \Nette\Object implements IMapper {
 		foreach ($annotations as $k => $v) {
 			if ($v[0] instanceof \Ormion\Association\IAssociation) {
 				foreach ($v as $association) {
-					$this->addAssociation($association->getName(), $association);
+					$association->setMapper($this);
+					$this->associations[$association->getName()] = $association;
                	}
 			}
 		}
-	}
-
-
-	/**
-	 * Add association
-	 * @param string $name
-	 * @param IAssociation $association
-	 * @return Mapper
-	 */
-	public function addAssociation($name, IAssociation $association) {
-		$association->setMapper($this);
-		$this->associations[$name] = $association;
-		return $this;
 	}
 
 

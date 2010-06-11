@@ -33,7 +33,7 @@ class Page extends Ormion\Record {
 		if (!Validators::validatePresence($this, "name")) {
 			$violations[] = new RuleViolation("Fill name.", "name");
 		}
-		
+
 		if (!Validators::validatePresence($this, "text")) {
 			$violations[] = new RuleViolation("Fill text.", "text");
 		}

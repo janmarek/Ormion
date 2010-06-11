@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/../../../document_root/index.php";
+
 use Nette\String;
 
 /**
@@ -64,7 +66,7 @@ class StorageTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testDefaultValue() {
-		
+
 	}
 
 	public function testGetValues() {
@@ -131,5 +133,5 @@ class StorageTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(md5(sha1("heslo")), $this->object->pass);
 
 	}
-	
+
 }

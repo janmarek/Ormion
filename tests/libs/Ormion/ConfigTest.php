@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/../../../document_root/index.php";
+
 /**
  * ConfigTest
  *
@@ -22,6 +24,7 @@ class ConfigTest extends PHPUnit_Framework_TestCase {
 					"type" => dibi::TEXT,
 					"column" => true,
 					"nullable" => false,
+					"size" => 100,
 				),
 				"description" => array(
 					"type" => dibi::TEXT,
@@ -41,7 +44,7 @@ class ConfigTest extends PHPUnit_Framework_TestCase {
 					"column" => false,
 				)
 			),
-			
+
 			"key" => array(
 				"id" => array(
 					"primary" => true,
@@ -70,7 +73,7 @@ class ConfigTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue($cfg->isNullable("description"));
 		$this->assertFalse($cfg->isNullable("text"));
 		$this->assertFalse($cfg->isNullable("name"));
-		
+
 		$this->assertTrue($cfg->isPrimaryAutoIncrement());
 
 		$this->assertEquals("id", $cfg->getPrimaryColumn());
@@ -98,11 +101,17 @@ class ConfigTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(null, $this->object->getType("nesmysl"));
 	}
 
-	
+
 	public function testIsNullable() {
 		$this->assertTrue($this->object->isNullable("description"));
 		$this->assertFalse($this->object->isNullable("text"));
 		$this->assertFalse($this->object->isNullable("name"));
+	}
+
+
+	public function testGetSize() {
+		$this->assertEquals(100, $this->object->getSize("name"));
+		$this->assertEquals(null, $this->object->getSize("text"));
 	}
 
 
