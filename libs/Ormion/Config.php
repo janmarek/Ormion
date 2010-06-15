@@ -2,9 +2,7 @@
 
 namespace Ormion;
 
-use Nette\Config\ConfigAdapterIni;
-use DibiTableInfo;
-use dibi;
+use dibi, DibiTableInfo;
 
 /**
  * Ormion config
@@ -12,32 +10,36 @@ use dibi;
  * @author Jan Marek
  * @license MIT
  */
-class Config extends \Nette\Object {
-
+class Config extends \Nette\Object
+{
 	/** @var array */
 	private $data;
 
-	
+
+
 	/**
 	 * Constructor
-	 * @param array $data
+	 * @param array data
 	 */
-	public function __construct($data) {
+	public function __construct($data)
+	{
 		$this->data = $data;
 	}
-	
+
+
 
 	/**
 	 * Create Config from database table info
 	 * @return Config
 	 */
-	public static function fromTableInfo(DibiTableInfo $tableInfo) {
+	public static function fromTableInfo(DibiTableInfo $tableInfo)
+	{
 		// columns
 		foreach ($tableInfo->getColumns() as $column) {
 			$name = $column->getName();
 			$type = $column->getType();
 
-          	if ($type === dibi::INTEGER && $column->getSize() === 1) {
+			if ($type === dibi::INTEGER && $column->getSize() === 1) {
 				$type = dibi::BOOL;
 			}
 
@@ -45,7 +47,7 @@ class Config extends \Nette\Object {
 
 			if ($type === dibi::TEXT && $column->getNativeType() === "VARCHAR") {
 				$arr["column"][$name]["size"] = $column->getSize();
-           	}
+			}
 
 			if ($column->isNullable()) {
 				$arr["column"][$name]["nullable"] = true;
@@ -63,21 +65,25 @@ class Config extends \Nette\Object {
 	}
 
 
+
 	/**
 	 * Get column
-	 * @param string $name
+	 * @param string name
 	 * @return array
 	 */
-	private function getColumn($name) {
+	private function getColumn($name)
+	{
 		return isset($this->data["column"][$name]) ? $this->data["column"][$name] : null;
 	}
+
 
 
 	/**
 	 * Get column names
 	 * @return array
 	 */
-	public function getColumns() { // getColumns ?
+	public function getColumns()
+	{
 		$arr = array();
 
 		foreach ($this->data["column"] as $name => $column) {
@@ -90,25 +96,30 @@ class Config extends \Nette\Object {
 	}
 
 
+
 	/**
 	 * Is real column
-	 * @param string $name column name
+	 * @param string column name
 	 * @return bool
 	 */
-	public function isColumn($name) {
-		return !(isset($this->data["column"][$name]["column"]) && $this->data["column"][$name]["column"] == false);
+	public function isColumn($name)
+	{
+		return!(isset($this->data["column"][$name]["column"]) && $this->data["column"][$name]["column"] == false);
 	}
+
 
 
 	/**
 	 * Get dibi type
-	 * @param string $name column name
+	 * @param string column name
 	 * @return string
 	 */
-	public function getType($name) {
+	public function getType($name)
+	{
 		$column = $this->getColumn($name);
 		return $column ? $column["type"] : null;
 	}
+
 
 
 	/**
@@ -116,28 +127,33 @@ class Config extends \Nette\Object {
 	 * @param string column name
 	 * @return int|null
 	 */
-	public function getSize($name) {
+	public function getSize($name)
+	{
 		$column = $this->getColumn($name);
 		return $column ? $column["size"] : null;
 	}
 
 
+
 	/**
 	 * Is column nullable
-	 * @param string $name
+	 * @param string column name
 	 * @return bool
 	 */
-	public function isNullable($name) {
+	public function isNullable($name)
+	{
 		$column = $this->getColumn($name);
 		return isset($column["nullable"]) ? (bool) $column["nullable"] : false;
 	}
+
 
 
 	/**
 	 * Is primary key auto increment
 	 * @return bool
 	 */
-	public function isPrimaryAutoIncrement() {
+	public function isPrimaryAutoIncrement()
+	{
 		foreach ($this->data["key"] as $key) {
 			if ($key["primary"]) {
 				return (bool) $key["autoIncrement"];
@@ -148,11 +164,13 @@ class Config extends \Nette\Object {
 	}
 
 
+
 	/**
 	 * Get primary column names
 	 * @return array
 	 */
-	public function getPrimaryColumns() {
+	public function getPrimaryColumns()
+	{
 		$arr = array();
 
 		foreach ($this->data["key"] as $name => $key) {
@@ -165,11 +183,13 @@ class Config extends \Nette\Object {
 	}
 
 
+
 	/**
 	 * Get first primary column name
 	 * @return string
 	 */
-	public function getPrimaryColumn() {
+	public function getPrimaryColumn()
+	{
 		foreach ($this->data["key"] as $name => $key) {
 			if ($key["primary"]) {
 				return $name;

@@ -8,18 +8,33 @@ namespace Ormion\Association;
  * @author Jan Marek
  * @license MIT
  */
-abstract class BaseAssociation extends \Nette\Object implements IAssociation {
-
+abstract class BaseAssociation extends \Nette\Object implements IAssociation
+{
+	/** @var string */
 	protected $name;
 
-    public function __construct(array $values) {
-        foreach ($values as $k => $v) {
+
+
+	/**
+	 * Construct
+	 * @param array values
+	 */
+	public function __construct(array $values)
+	{
+		foreach ($values as $k => $v) {
 			$this->$k = $v;
 		}
-    }
+	}
 
-	public function getName() {
-        return $this->name;
-    }
+
+
+	/**
+	 * Get name
+	 * @return string
+	 */
+	public function getName()
+	{
+		return $this->name;
+	}
 
 }

@@ -8,8 +8,8 @@ use Ormion\IRecord;
  *
  * @author Jan Marek
  */
-class ManyToManyAnnotation extends Ormion\Association\BaseAssociation {
-
+class ManyToManyAnnotation extends Ormion\Association\BaseAssociation
+{
 	/** @var string */
 	protected $referencedEntity;
 
@@ -26,17 +26,23 @@ class ManyToManyAnnotation extends Ormion\Association\BaseAssociation {
 	protected $mapper;
 
 
-	public function setMapper(IMapper $mapper) {
+
+	public function setMapper(IMapper $mapper)
+	{
 		$this->mapper = $mapper;
 	}
 
 
-	public function setReferenced(IRecord $record, $data) {
+
+	public function setReferenced(IRecord $record, $data)
+	{
 		
 	}
 
 
-	public function retrieveReferenced(IRecord $record) {
+
+	public function retrieveReferenced(IRecord $record)
+	{
 		if ($record->getState() == IRecord::STATE_NEW) {
 			return array();
 		}
@@ -53,8 +59,10 @@ class ManyToManyAnnotation extends Ormion\Association\BaseAssociation {
 		return $class::findAll()->where("%n in %in", $class::getMapper()->getConfig()->getPrimaryColumn(), $ids);
 	}
 
-	
-	public function saveReferenced(IRecord $record, $data) {
+
+
+	public function saveReferenced(IRecord $record, $data)
+	{
 		$db = $this->mapper->getDb();
 		$ids = $db
 			->delete($this->connectingTable)

@@ -2,16 +2,15 @@
 
 namespace Ormion;
 
-use ArrayIterator;
-use ArrayObject;
+use ArrayIterator, ArrayObject;
 
 /**
  * Ormion storage
  *
  * @author Jan Marek
  */
-class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorAggregate {
-
+class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorAggregate
+{
 	// <editor-fold defaultstate="collapsed" desc="variables">
 
 	/** @var ArrayObject */
@@ -44,9 +43,10 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 
 	/**
 	 * Constructor
-	 * @param array|int $data
+	 * @param array|int data
 	 */
-	public function __construct($data = null) {
+	public function __construct($data = null)
+	{
 		$this->init();
 
 		$this->values = new ArrayObject(array());
@@ -57,10 +57,12 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 	}
 
 
+
 	/**
 	 * User initialization, can be overriden
 	 */
-	protected function init() {
+	protected function init()
+	{
 
 	}
 
@@ -70,11 +72,12 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 
 	/**
 	 * Set callback for setting values
-	 * @param string $name
-	 * @param callback $callback php callback
+	 * @param string name
+	 * @param callback php callback
 	 * @return OrmionStorage
 	 */
-	public function registerSetter($name, $callback) {
+	public function registerSetter($name, $callback)
+	{
 		if (!is_callable($callback)) {
 			throw new \InvalidArgumentException("Argument is not callable.");
 		}
@@ -84,13 +87,15 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 	}
 
 
+
 	/**
 	 * Set callback for getting values
-	 * @param string $name
-	 * @param callback $callback php callback
+	 * @param string name
+	 * @param callback php callback
 	 * @return OrmionStorage
 	 */
-	public function registerGetter($name, $callback) {
+	public function registerGetter($name, $callback)
+	{
 		if (!is_callable($callback)) {
 			throw new \InvalidArgumentException("Argument is not callable.");
 		}
@@ -100,13 +105,15 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 	}
 
 
+
 	/**
 	 * Add input filter
-	 * @param string $name
-	 * @param callback $callback php callback
+	 * @param string name
+	 * @param callback php callback
 	 * @return OrmionStorage
 	 */
-	public function addInputFilter($name, $callback) {
+	public function addInputFilter($name, $callback)
+	{
 		if (!is_callable($callback)) {
 			throw new \InvalidArgumentException("Argument is not callable.");
 		}
@@ -116,13 +123,15 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 	}
 
 
+
 	/**
 	 * Add output filter
-	 * @param string $name
-	 * @param callback $callback php callback
+	 * @param string name
+	 * @param callback php callback
 	 * @return OrmionStorage
 	 */
-	public function addOutputFilter($name, $callback) {
+	public function addOutputFilter($name, $callback)
+	{
 		if (!is_callable($callback)) {
 			throw new \InvalidArgumentException("Argument is not callable.");
 		}
@@ -138,26 +147,31 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 	/**
 	 * Set all values as unmodified
 	 */
-	public function clearModified() {
+	public function clearModified()
+	{
 		$this->modified = array();
 	}
+
 
 
 	/**
 	 * Get modified column names
 	 * @return array
 	 */
-	public function getModified() {
+	public function getModified()
+	{
 		return array_keys($this->modified);
 	}
 
 
+
 	/**
 	 * Is value modified
-	 * @param string $name
+	 * @param string name
 	 * @return bool
 	 */
-	public function isValueModified($name) {
+	public function isValueModified($name)
+	{
 		return isset($this->modified[$name]);
 	}
 
@@ -167,22 +181,25 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 
 	/**
 	 * Set alias
-	 * @param string $alias
-	 * @param string $name
+	 * @param string alias
+	 * @param string name
 	 * @return OrmionStorage
 	 */
-	public function setAlias($alias, $name) {
+	public function setAlias($alias, $name)
+	{
 		$this->aliases[$alias] = $name;
 		return $this;
 	}
 
 
+
 	/**
 	 * Normalize column name (replace alias)
-	 * @param string $name
+	 * @param string name
 	 * @return string
 	 */
-	protected function fixName($name) {
+	protected function fixName($name)
+	{
 		if (isset($this->aliases[$name])) {
 			return $this->aliases[$name];
 		}
@@ -199,39 +216,46 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 	 * @return ArrayObject
 	 * @deprecated
 	 */
-	public function getStorage() {
+	public function getStorage()
+	{
 		return $this->values;
 	}
 
 
+
 	/**
 	 * Set default value
-	 * @param string $name
-	 * @param mixed $value
+	 * @param string name
+	 * @param mixed value
 	 * @return OrmionStorage
 	 */
-	public function setDefaultValue($name, $value) {
+	public function setDefaultValue($name, $value)
+	{
 		// todo vyhazovat výjimku když je pozdě
 		$this->defaults[$this->fixName($name)] = $value;
 		return $this;
 	}
 
 
+
 	/**
 	 * Get default values
 	 * @return array default values
 	 */
-	public function getDefaultValues() {
-       return $this->defaults;
-    }
+	public function getDefaultValues()
+	{
+		return $this->defaults;
+	}
+
 
 
 	/**
 	 * Multiple getter
-	 * @param array $columns
+	 * @param array columns
 	 * @return array
 	 */
-	public function getValues($columns = null) {
+	public function getValues($columns = null)
+	{
 		if ($columns === null) {
 			$columns = array_unique(
 				array_merge(
@@ -251,12 +275,14 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 	}
 
 
+
 	/**
 	 * Multiple setter
-	 * @param array $data
+	 * @param array data
 	 * @return OrmionStorage
 	 */
-	public function setValues($data) {
+	public function setValues($data)
+	{
 		foreach ($data as $key => $value) {
 			$this->__set($key, $value);
 		}
@@ -265,12 +291,14 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 	}
 
 
+
 	/**
 	 * Magic getter for field value, do not call directly
-	 * @param string $name
+	 * @param string name
 	 * @return mixed
 	 */
-	public function & __get($name) {
+	public function & __get($name)
+	{
 		$name = $this->fixName($name);
 
 		if (isset($this->getters[$name])) {
@@ -294,14 +322,16 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 	}
 
 
+
 	/**
 	 * Magic setter for field value, do not call directly
-	 * @param string $name
-	 * @param mixed $value
+	 * @param string name
+	 * @param mixed value
 	 */
-	public function __set($name, $value) {
+	public function __set($name, $value)
+	{
 		$this->updating();
-		
+
 		$name = $this->fixName($name);
 
 		// input filters
@@ -321,32 +351,38 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 	}
 
 
+
 	/**
 	 * Magic isset, do not call directly
-	 * @param string $name
+	 * @param string name
 	 * @return bool
 	 */
-	public function __isset($name) {
+	public function __isset($name)
+	{
 		return isset($this->values[$this->fixName($name)]);
 	}
 
 
+
 	/**
 	 * Magic unset, do not call directly
-	 * @param string $name
+	 * @param string name
 	 */
-	public function __unset($name) {
+	public function __unset($name)
+	{
 		$this->updating();
 		unset($this->values[$this->fixName($name)]);
 	}
 
 
+
 	/**
 	 * Is value set?
-	 * @param string $name
+	 * @param string name
 	 * @return bool
 	 */
-	public function hasValue($name) {
+	public function hasValue($name)
+	{
 		return array_key_exists($this->fixName($name), $this->values);
 	}
 
@@ -354,22 +390,29 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 
 	// <editor-fold defaultstate="collapsed" desc="ArrayAccess">
 
-	public function offsetExists($offset) {
+	public function offsetExists($offset)
+	{
 		return $this->__isset($offset);
 	}
 
 
-	public function offsetGet($offset) {
+
+	public function offsetGet($offset)
+	{
 		return $this->__get($offset);
 	}
 
 
-	public function offsetSet($offset, $value) {
+
+	public function offsetSet($offset, $value)
+	{
 		$this->__set($offset, $value);
 	}
 
 
-	public function offsetUnset($offset) {
+
+	public function offsetUnset($offset)
+	{
 		$this->__unset($offset);
 	}
 
@@ -377,7 +420,8 @@ class Storage extends \Nette\FreezableObject implements \ArrayAccess, \IteratorA
 
 	// <editor-fold defaultstate="collapsed" desc="IteratorAggregate">
 
-	public function getIterator() {
+	public function getIterator()
+	{
 		return new ArrayIterator($this->getValues());
 	}
 

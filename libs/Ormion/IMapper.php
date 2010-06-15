@@ -8,6 +8,7 @@ namespace Ormion;
  * @author Jan Marek
  * @license MIT
  */
-interface IMapper {
+interface IMapper
+{
 
 }

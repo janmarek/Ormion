@@ -9,21 +9,25 @@ use Ormion\IMapper;
  * @author Jan Marek
  * @license MIT
  */
-class HasOneAnnotation extends Ormion\Association\BaseAssociation {
-
+class HasOneAnnotation extends Ormion\Association\BaseAssociation
+{
 	/** @var string */
 	protected $referencedEntity;
 
 	/** @var string */
 	protected $column;
 
+	
 
-	public function setMapper(IMapper $mapper) {
+	public function setMapper(IMapper $mapper)
+	{
 		
 	}
 
 
-	public function setReferenced(IRecord $record, $data) {
+
+	public function setReferenced(IRecord $record, $data)
+	{
 		if ($data->getState() == IRecord::STATE_NEW) {
 			throw new \NotImplementedException;
 		}
@@ -32,13 +36,17 @@ class HasOneAnnotation extends Ormion\Association\BaseAssociation {
 	}
 
 
-	public function retrieveReferenced(IRecord $record) {
+
+	public function retrieveReferenced(IRecord $record)
+	{
 		$class = $this->referencedEntity;
 		return $class::find($record[$this->column]);
 	}
 
-	
-	public function saveReferenced(IRecord $record, $data) {
+
+
+	public function saveReferenced(IRecord $record, $data)
+	{
 		$data->save();
 	}
 

@@ -2,21 +2,17 @@
 
 namespace Ormion\Behavior;
 
-use Ormion\IRecord;
-
 /**
  * Interface Behavior
  *
  * @author Jan Marek
  * @license MIT
  */
-interface IBehavior {
-
+interface IBehavior
+{
 	/**
 	 * Setup behavior
-	 * @param IRecord $record
-	 * @todo rename?    initialize, initializeBehavior
+	 * @param IRecord record
 	 */
-	public function setUp(IRecord $record);
-
+	public function setUp(Ormion\IRecord $record);
 }

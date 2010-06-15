@@ -9,24 +9,28 @@ use Ormion\IRecord;
  * @author Jan Marek
  * @license MIT
  */
-class HasManyAnnotation extends Ormion\Association\BaseAssociation {
-
+class HasManyAnnotation extends Ormion\Association\BaseAssociation
+{
 	/** @var string */
 	protected $referencedEntity;
 
 	/** @var string */
 	protected $column;
-
+	
 	/** @var IMapper */
 	protected $mapper;
 
 
-	public function setMapper(IMapper $mapper) {
+	
+	public function setMapper(IMapper $mapper)
+	{
 		$this->mapper = $mapper;
 	}
 
 
-	public function setReferenced(IRecord $record, $data) {
+
+	public function setReferenced(IRecord $record, $data)
+	{
 		if ($record->getState() === IRecord::STATE_EXISTING) {
 			foreach ($data as $item) {
 				$item[$this->column] = $record->getPrimary();
@@ -35,19 +39,24 @@ class HasManyAnnotation extends Ormion\Association\BaseAssociation {
 	}
 
 
-	public function retrieveReferenced(IRecord $record) {
+
+	public function retrieveReferenced(IRecord $record)
+	{
 		if ($record->getState() === IRecord::STATE_NEW) {
 			return array();
 		}
 
 		$cls = $this->referencedEntity;
+		
 		return $cls::findAll(array(
 			$this->column => $record->getPrimary()
 		));
 	}
 
 
-	public function saveReferenced(IRecord $record, $data) {
+
+	public function saveReferenced(IRecord $record, $data)
+	{
 		$this->setReferenced($record, $data);
 
 		$pks = array();
@@ -67,8 +76,8 @@ class HasManyAnnotation extends Ormion\Association\BaseAssociation {
 		if (!empty($pks)) {
 			$q->and("%n not in %in", $cls::getConfig()->getPrimaryColumn(), $pks);
 		}
-		
+
 		$q->execute();
 	}
-	
+
 }

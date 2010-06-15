@@ -11,29 +11,35 @@ use Ormion\IRecord;
  * @author Jan Marek
  * @license MIT
  */
-class Timestampable extends Object implements IBehavior {
-
+class Timestampable extends Object implements IBehavior
+{
 	/** @var string|null */
 	private $created;
 
 	/** @var string|null */
 	private $updated;
 
+
+
 	/**
 	 * Constructor
-	 * @param string|null $created
-	 * @param string|null $updated
+	 * @param string|null created
+	 * @param string|null updated
 	 */
-	public function __construct($created = "created", $updated = "updated") {
+	public function __construct($created = "created", $updated = "updated")
+	{
 		$this->created = $created;
 		$this->updated = $updated;
 	}
 
+
+
 	/**
 	 * Setup behavior
-	 * @param IRecord $record
+	 * @param IRecord record
 	 */
-	public function setUp(IRecord $record) {
+	public function setUp(IRecord $record)
+	{
 		if (isset($this->created)) {
 			$record->onBeforeInsert[] = array($this, "updateCreated");
 		}
@@ -43,11 +49,18 @@ class Timestampable extends Object implements IBehavior {
 		}
 	}
 
-	public function updateCreated(IRecord $record) {
+
+
+	public function updateCreated(IRecord $record)
+	{
 		$record->{$this->created} = time();
 	}
 
-	public function updateUpdated(IRecord $record) {
+
+
+	public function updateUpdated(IRecord $record)
+	{
 		$record->{$this->updated} = time();
 	}
+
 }

@@ -8,10 +8,14 @@ namespace Ormion\Validation;
  * @author Jan Marek
  * @license MIT
  */
-class RuleViolation extends \Nette\Object {
+class RuleViolation extends \Nette\Object
+{
+	/** @var string */
+	private $message;
 
-    private $message;
-    private $name;
+	/** @var string */
+	private $name;
+
 
 
 	/**
@@ -19,28 +23,33 @@ class RuleViolation extends \Nette\Object {
 	 * @param string error message
 	 * @param string field name
 	 */
-    function __construct($message, $name = null) {
-        $this->message = $message;
-        $this->name = $name;
-    }
+	function __construct($message, $name = null)
+	{
+		$this->message = $message;
+		$this->name = $name;
+	}
+
 
 
 	/**
 	 * Get message
 	 * @return string
 	 */
-    public function getMessage() {
-        return $this->message;
-    }
+	public function getMessage()
+	{
+		return $this->message;
+	}
+
 
 
 	/**
 	 * Get name
 	 * @return string|null
 	 */
-    public function getName() {
-        return $this->name;
-    }
+	public function getName()
+	{
+		return $this->name;
+	}
 
 }
 

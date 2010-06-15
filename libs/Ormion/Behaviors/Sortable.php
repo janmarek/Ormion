@@ -2,7 +2,6 @@
 
 namespace Ormion\Behavior;
 
-use Nette\Object;
 use Ormion\IRecord;
 
 /**
@@ -10,8 +9,8 @@ use Ormion\IRecord;
  *
  * @author Jan Marek
  */
-class Sortable extends Object implements IBehavior {
-
+class Sortable extends Nette\Object implements IBehavior
+{
 	/** @var string */
 	private $orderColumn;
 
@@ -19,34 +18,39 @@ class Sortable extends Object implements IBehavior {
 	private $groupColumn;
 
 
+
 	/**
 	 * Constructor
-	 * @param string $orderColumn order column name
-	 * @param string $groupColumn group column name
+	 * @param string order column name
+	 * @param string group column name
 	 */
-	public function __construct($orderColumn = "order", $groupColumn = null) {
+	public function __construct($orderColumn = "order", $groupColumn = null)
+	{
 		$this->orderColumn = $orderColumn;
 		$this->groupColumn = $groupColumn;
 	}
 
 
+
 	/**
 	 * Setup behavior
-	 * @param IRecord $record
+	 * @param IRecord record
 	 */
-	public function setUp(IRecord $record) {
+	public function setUp(IRecord $record)
+	{
 		$record->onBeforeInsert[] = array($this, "setOrderBeforeInsert");
 		$record->onBeforeDelete[] = array($this, "fixOrderBeforeDelete");
 		$record->onBeforeUpdate[] = array($this, "fixOrderBeforeUpdate");
-
 	}
+
 
 
 	/**
 	 * Set order before insert
-	 * @param IRecord $record
+	 * @param IRecord record
 	 */
-	public function setOrderBeforeInsert(IRecord $record) {
+	public function setOrderBeforeInsert(IRecord $record)
+	{
 		$collection = $record->findAll();
 		if (isset($this->groupColumn)) {
 			$type = $record->getConfig()->getType($this->groupColumn);
@@ -56,11 +60,13 @@ class Sortable extends Object implements IBehavior {
 	}
 
 
+
 	/**
 	 * Fix order before delete
-	 * @param IRecord $record
+	 * @param IRecord record
 	 */
-	public function fixOrderBeforeDelete(IRecord $record) {
+	public function fixOrderBeforeDelete(IRecord $record)
+	{
 		$columns[] = $this->orderColumn;
 		if (isset($this->groupColumn)) {
 			$columns[] = $this->groupColumn;
@@ -83,14 +89,16 @@ class Sortable extends Object implements IBehavior {
 	}
 
 
+
 	/**
 	 * Fix order before update
-	 * @param IRecord $record
+	 * @param IRecord record
 	 */
-	public function fixOrderBeforeUpdate(IRecord $record) {
+	public function fixOrderBeforeUpdate(IRecord $record)
+	{
 		if ($record->isValueModified($this->orderColumn) || (isset($this->groupColumn) && $record->isValueModified($this->groupColumn))) {
 			$original = $record->find($record->getPrimary());
-			
+
 			$columns[] = $this->orderColumn;
 			if (isset($this->groupColumn)) {
 				$columns[] = $this->groupColumn;

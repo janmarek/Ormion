@@ -3,8 +3,6 @@
 namespace Ormion;
 
 use dibi;
-use InvalidStateException;
-use InvalidArgumentException;
 use Ormion\Behavior\IBehavior;
 use DateTime;
 use Nette\Forms\Form;
@@ -15,12 +13,12 @@ use Nette\Forms\Form;
  * @author Jan Marek
  * @license MIT
  */
-abstract class Record extends Storage implements IRecord {
-
+abstract class Record extends Storage implements IRecord
+{
 	// <editor-fold defaultstate="collapsed" desc="variables">
 
 	/** @var string */
-	protected static $mapperClass = "Ormion\Mapper";
+	protected static $mapperClass = 'Ormion\Mapper';
 
 	/** @var array */
 	private static $mappers;
@@ -60,9 +58,10 @@ abstract class Record extends Storage implements IRecord {
 
 	/**
 	 * Constructor
-	 * @param array|int $data
+	 * @param array|int data
 	 */
-	public function __construct($data = null) {
+	public function __construct($data = null)
+	{
 		if (is_scalar($data)) {
 			parent::__construct();
 			$this->{$this->getConfig()->getPrimaryColumn()} = $data;
@@ -72,12 +71,14 @@ abstract class Record extends Storage implements IRecord {
 	}
 
 
+
 	/**
 	 * Create instance
-	 * @param array $data
+	 * @param array data
 	 * @return Record
 	 */
-	public static function create($data = null) {
+	public static function create($data = null)
+	{
 		return new static($data);
 	}
 
@@ -89,7 +90,8 @@ abstract class Record extends Storage implements IRecord {
 	 * Get mapper
 	 * @return IMapper
 	 */
-	public static function getMapper() {
+	public static function getMapper()
+	{
 		$class = get_called_class();
 
 		if (empty(self::$mappers[$class])) {
@@ -100,17 +102,19 @@ abstract class Record extends Storage implements IRecord {
 	}
 
 
+
 	/**
 	 * Mapper factory
 	 * @return IMapper
 	 */
-	public static function createMapper() {
+	public static function createMapper()
+	{
 		if (isset(static::$table)) {
 			$table = static::$table;
 		} elseif (static::getReflection()->getAnnotation("table") != null) {
 			$table = static::getReflection()->getAnnotation("table");
-       	} else {
-			throw new InvalidStateException("Table name is not set.");
+		} else {
+			throw new \InvalidStateException("Table name is not set.");
 		}
 
 		$cls = static::$mapperClass;
@@ -118,11 +122,13 @@ abstract class Record extends Storage implements IRecord {
 	}
 
 
+
 	/**
 	 * Get config
 	 * @return Config
 	 */
-	public static function getConfig() {
+	public static function getConfig()
+	{
 		return static::getMapper()->getConfig();
 	}
 
@@ -132,10 +138,11 @@ abstract class Record extends Storage implements IRecord {
 
 	/**
 	 * Add record behavior
-	 * @param IBehavior $behavior
+	 * @param IBehavior behavior
 	 * @return Record
 	 */
-	public function addBehavior(IBehavior $behavior) {
+	public function addBehavior(IBehavior $behavior)
+	{
 		$behavior->setUp($this);
 		return $this;
 	}
@@ -148,58 +155,67 @@ abstract class Record extends Storage implements IRecord {
 	 * Is record valid?
 	 * @return bool
 	 */
-	public function isValid() {
+	public function isValid()
+	{
 		return count($this->getRuleViolations()) === 0;
-    }
+	}
+
 
 
 	/**
 	 * Get rule violations
 	 * @return array
 	 */
-	public function getRuleViolations() {
-        return array();
-    }
+	public function getRuleViolations()
+	{
+		return array();
+	}
+
 
 
 	/**
 	 * Add errors to form (form helper)
 	 * @param Form form
 	 */
-	public function addErrorsToForm(Form $form) {
-        foreach ($this->getRuleViolations() as $issue) {
+	public function addErrorsToForm(Form $form)
+	{
+		foreach ($this->getRuleViolations() as $issue) {
 			$name = $issue->getName();
 
 			if ($name !== null && isset($form[$name])) {
 				$form[$name]->addError($issue->getMessage());
-           	} else {
+			} else {
 				$form->addError($issue->getMessage());
 			}
 		}
-    }
+	}
 
-  	// </editor-fold>
+	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="finders">
 
 	/**
 	 * Find record
-	 * @param mixed $conditions
+	 * @param mixed conditions
 	 * @return Record
 	 */
-	public static function find($conditions = null) {
+	public static function find($conditions = null)
+	{
 		return static::getMapper()->find($conditions);
 	}
 
 
+
 	/**
 	 * Find all records
-	 * @param array $conditions
+	 * @param array conditions
 	 * @return Collection
 	 */
-	public static function findAll($conditions = null) {
+	public static function findAll($conditions = null)
+	{
 		return static::getMapper()->findAll($conditions);
 	}
+
 
 
 	/**
@@ -211,15 +227,14 @@ abstract class Record extends Storage implements IRecord {
 	 * @param  array
 	 * @return Record|false|Collection
 	 */
-	public static function __callStatic($name, $args) {
+	public static function __callStatic($name, $args)
+	{
 		if (strncmp($name, 'findBy', 6) === 0) { // single row
 			$single = true;
 			$name = substr($name, 6);
-
 		} elseif (strncmp($name, 'findAllBy', 9) === 0) { // multi row
 			$single = false;
 			$name = substr($name, 9);
-
 		} else {
 			return parent::__callStatic($name, $args);
 		}
@@ -228,7 +243,7 @@ abstract class Record extends Storage implements IRecord {
 		$parts = explode('_and_', strtolower(preg_replace('#(.)(?=[A-Z])#', '$1_', $name)));
 
 		if (count($parts) !== count($args)) {
-			throw new InvalidArgumentException("Magic fetch expects " . count($parts) . " parameters, but " . count($args) . " was given.");
+			throw new \InvalidArgumentException("Magic fetch expects " . count($parts) . " parameters, but " . count($args) . " was given.");
 		}
 
 		$conditions = array_combine($parts, $args);
@@ -244,12 +259,13 @@ abstract class Record extends Storage implements IRecord {
 	 * Save record
 	 * @return Record
 	 */
-	public function save() {
+	public function save()
+	{
 		$this->updating();
 
 		if (!$this->isValid()) {
 			throw new \ModelException("Record is not valid and cannot be saved.");
-       	}
+		}
 
 		switch ($this->getState()) {
 			case self::STATE_DELETED:
@@ -269,11 +285,13 @@ abstract class Record extends Storage implements IRecord {
 	}
 
 
+
 	/**
 	 * Delete record
 	 * @return Record
 	 */
-	public function delete() {
+	public function delete()
+	{
 		$this->getMapper()->delete($this);
 		return $this;
 	}
@@ -284,21 +302,24 @@ abstract class Record extends Storage implements IRecord {
 
 	/**
 	 * Load specified values into this record
-	 * @param array $values value names, null means all values
+	 * @param array value names, null means all values
 	 * @return Record
 	 */
-	public function loadValues($values = null) {
+	public function loadValues($values = null)
+	{
 		$this->getMapper()->loadValues($this, $values);
 		return $this;
 	}
 
 
+
 	/**
 	 * Load not loaded values
-	 * @param array $values
+	 * @param array value names, null means all values
 	 * @return Record
 	 */
-	public function lazyLoadValues($values = null) {
+	public function lazyLoadValues($values = null)
+	{
 		if ($values === null) {
 			$values = $this->getConfig()->getColumns();
 		}
@@ -322,22 +343,24 @@ abstract class Record extends Storage implements IRecord {
 
 	/**
 	 * Is association loaded?
-	 * @param string $name
+	 * @param string name
 	 * @return bool
 	 */
-	public function isAssociationLoaded($name) {
+	public function isAssociationLoaded($name)
+	{
 		return array_key_exists($name, $this->associationData);
 	}
 
 	// </editor-fold>
-	
+
 	// <editor-fold defaultstate="collapsed" desc="state">
 
 	/**
 	 * Get state
 	 * @return int
 	 */
-	public function getState() {
+	public function getState()
+	{
 		if (isset($this->state)) {
 			return $this->state;
 		}
@@ -350,7 +373,6 @@ abstract class Record extends Storage implements IRecord {
 			} else {
 				return IRecord::STATE_NEW;
 			}
-
 		} else {
 			// TODO check in db
 			return IRecord::STATE_NEW;
@@ -358,12 +380,14 @@ abstract class Record extends Storage implements IRecord {
 	}
 
 
+
 	/**
 	 * Set state
-	 * @param int $state
+	 * @param int state
 	 * @return Record
 	 */
-	public function setState($state) {
+	public function setState($state)
+	{
 		$this->state = $state;
 		return $this;
 	}
@@ -376,7 +400,8 @@ abstract class Record extends Storage implements IRecord {
 	 * Get primary key value
 	 * @return mixed
 	 */
-	public function getPrimary() {
+	public function getPrimary()
+	{
 		$primaryColumns = $this->getConfig()->getPrimaryColumns();
 		if (count($primaryColumns) == 1) {
 			return $this->{$primaryColumns[0]};
@@ -390,25 +415,29 @@ abstract class Record extends Storage implements IRecord {
 	}
 
 
+
 	/**
 	 * Multiple getter
-	 * @param array $columns
+	 * @param array columns
 	 * @return array
 	 */
-	public function getValues($columns = null) {
+	public function getValues($columns = null)
+	{
 		$this->lazyLoadValues($columns);
 		return parent::getValues($columns);
 	}
 
-	
+
+
 	/**
 	 * Convert value
-	 * @param mixed $value
-	 * @param string $type
-	 * @param bool $nullable
+	 * @param mixed value
+	 * @param string type
+	 * @param bool is nullable
 	 * @return mixed
 	 */
-	protected function convertValue($value, $type, $nullable = true) {
+	protected function convertValue($value, $type, $nullable = true)
+	{
 		if ($nullable && $value === null) {
 			return null;
 		}
@@ -442,12 +471,14 @@ abstract class Record extends Storage implements IRecord {
 	}
 
 
+
 	/**
 	 * Magic setter (with converting values)
-	 * @param string $name
-	 * @param mixed $value
+	 * @param string name
+	 * @param mixed value
 	 */
-	public function __set($name, $value) {
+	public function __set($name, $value)
+	{
 		$name = $this->fixName($name);
 
 		$mapper = $this->getMapper();
@@ -464,12 +495,14 @@ abstract class Record extends Storage implements IRecord {
 	}
 
 
+
 	/**
 	 * Magic getter (with lazy loading)
-	 * @param string $name
+	 * @param string name
 	 * @return mixed
 	 */
-	public function & __get($name) {
+	public function & __get($name)
+	{
 		$name = $this->fixName($name);
 
 		if ($this->getMapper()->hasAssociation($name)) {
@@ -488,12 +521,14 @@ abstract class Record extends Storage implements IRecord {
 	}
 
 
+
 	/**
 	 * Magic isset with lazy loading
-	 * @param string $name
+	 * @param string name
 	 * @return bool
 	 */
-	public function __isset($name) {
+	public function __isset($name)
+	{
 		$name = $this->fixName($name);
 
 		if ($this->getState() === self::STATE_EXISTING && !parent::hasValue($name) && $this->getConfig()->isColumn($name)) {
@@ -504,12 +539,14 @@ abstract class Record extends Storage implements IRecord {
 	}
 
 
+
 	/**
 	 * Has value with lazy loading
-	 * @param string $name
+	 * @param string name
 	 * @return bool
 	 */
-	public function hasValue($name) {
+	public function hasValue($name)
+	{
 		$name = $this->fixName($name);
 
 		if ($this->getState() === self::STATE_EXISTING && !parent::hasValue($name) && $this->getConfig()->isColumn($name)) {
@@ -520,5 +557,5 @@ abstract class Record extends Storage implements IRecord {
 	}
 
 	// </editor-fold>
-
+	
 }

@@ -8,17 +8,20 @@ namespace Ormion\Validation;
  * @author Jan Marek
  * @license MIT
  */
-class Validators extends \Nette\Object {
-
+class Validators extends \Nette\Object
+{
 	/**
 	 * Validate presence of required value
 	 * @param \Ormion\Record record
 	 * @param string field name
 	 * @return bool
 	 */
-	public static function validatePresence($record, $name) {
+	public static function validatePresence($record, $name)
+	{
 		return isset($record->$name) && $record->$name !== "";
-    }
+	}
+
+
 
 	/**
 	 * Is value valid email address?
@@ -26,8 +29,10 @@ class Validators extends \Nette\Object {
 	 * @param string field name
 	 * @return bool
 	 */
-	public static function validateEmail($record, $name) {
-		if (!self::validatePresence($record, $name)) return false;
+	public static function validateEmail($record, $name)
+	{
+		if (!self::validatePresence($record, $name))
+			return false;
 
 		$atom = "[-a-z0-9!#$%&'*+/=?^_`{|}~]"; // RFC 5322 unquoted characters in local-part
 		$localPart = "(\"([ !\\x23-\\x5B\\x5D-\\x7E]*|\\\\[ -~])+\"|$atom+(\\.$atom+)*)"; // quoted or unquoted

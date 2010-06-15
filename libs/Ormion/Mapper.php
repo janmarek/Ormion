@@ -2,10 +2,9 @@
 
 namespace Ormion;
 
-use Nette\Environment;
+use Nette\Environment, Nette\Reflection\ClassReflection;
 use dibi;
 use Ormion\Association\IAssociation;
-use Nette\Reflection\ClassReflection;
 
 /**
  * Mapper
@@ -13,8 +12,8 @@ use Nette\Reflection\ClassReflection;
  * @author Jan Marek
  * @license MIT
  */
-class Mapper extends \Nette\Object implements IMapper {
-
+class Mapper extends \Nette\Object implements IMapper
+{
 	// <editor-fold defaultstate="collapsed" desc="variables">
 
 	/** @var string */
@@ -38,10 +37,11 @@ class Mapper extends \Nette\Object implements IMapper {
 
 	/**
 	 * Construct mapper
-	 * @param string $table table name
-	 * @param string $rowClass ormion record class name
+	 * @param string table name
+	 * @param string ormion record class name
 	 */
-	public function __construct($table, $rowClass) {
+	public function __construct($table, $rowClass)
+	{
 		$this->table = $table;
 		$this->rowClass = $rowClass;
 		$this->loadAssociations();
@@ -55,25 +55,30 @@ class Mapper extends \Nette\Object implements IMapper {
 	 * Get table name
 	 * @return string
 	 */
-	public function getTable() {
+	public function getTable()
+	{
 		return $this->table;
 	}
+
 
 
 	/**
 	 * Get row class name
 	 * @return string
 	 */
-	public function getRowClass() {
+	public function getRowClass()
+	{
 		return $this->rowClass;
 	}
+
 
 
 	/**
 	 * Get dibi connection
 	 * @return DibiConnection
 	 */
-	public function getDb() {
+	public function getDb()
+	{
 		return dibi::getConnection($this->dibiConnectionName);
 	}
 
@@ -81,12 +86,12 @@ class Mapper extends \Nette\Object implements IMapper {
 
 	// <editor-fold defaultstate="collapsed" desc="config">
 
-
 	/**
 	 * Get table config
 	 * @return Config
 	 */
-	public function getConfig() {
+	public function getConfig()
+	{
 		if (empty($this->config)) {
 			$cacheKey = get_class($this) . "-" . $this->table . "-" . $this->rowClass;
 			$cache = Environment::getCache("Ormion");
@@ -108,38 +113,43 @@ class Mapper extends \Nette\Object implements IMapper {
 	// <editor-fold defaultstate="collapsed" desc="associations">
 
 	/**
-	 * Load associations from config
+	 * Load associations
 	 */
-	protected function loadAssociations() {
+	protected function loadAssociations()
+	{
 		$annotations = ClassReflection::from($this->rowClass)->getAnnotations();
-		
+
 		foreach ($annotations as $k => $v) {
 			if ($v[0] instanceof \Ormion\Association\IAssociation) {
 				foreach ($v as $association) {
 					$association->setMapper($this);
 					$this->associations[$association->getName()] = $association;
-               	}
+				}
 			}
 		}
 	}
 
 
+
 	/**
 	 * Has association?
-	 * @param string $name
+	 * @param string name
 	 * @return bool
 	 */
-	public function hasAssociation($name) {
+	public function hasAssociation($name)
+	{
 		return isset($this->associations[$name]);
 	}
 
 
+
 	/**
 	 * Get association
-	 * @param string $name
+	 * @param string name
 	 * @return IAssociation
 	 */
-	public function getAssociation($name) {
+	public function getAssociation($name)
+	{
 		return $this->associations[$name];
 	}
 
@@ -151,29 +161,35 @@ class Mapper extends \Nette\Object implements IMapper {
 	 * Create base DibiFluent for find
 	 * @return DibiFluent
 	 */
-	protected function createFindFluent() {
+	protected function createFindFluent()
+	{
 		return $this->getDb()->select("*")->from($this->table);
 	}
 
 
+
 	/**
 	 * Find all results
-	 * @param array $conditions
+	 * @param array conditions
 	 * @return Collection
 	 */
-	public function findAll($conditions = null) {
+	public function findAll($conditions = null)
+	{
 		$fluent = $this->createFindFluent();
-		if ($conditions) $fluent->where($conditions);
+		if ($conditions)
+			$fluent->where($conditions);
 		return new Collection($fluent, $this->rowClass);
 	}
 
 
+
 	/**
 	 * Find one result
-	 * @param array|int $conditions
+	 * @param array|int conditions
 	 * @return IRecord|false
 	 */
-	public function find($conditions = null) {
+	public function find($conditions = null)
+	{
 		$fluent = $this->createFindFluent();
 
 		if (is_scalar($conditions)) {
@@ -197,13 +213,15 @@ class Mapper extends \Nette\Object implements IMapper {
 		return $res;
 	}
 
-	
+
+
 	/**
 	 * Load values into record
-	 * @param IRecord $record
-	 * @param array $values value names
+	 * @param IRecord record
+	 * @param array value names
 	 */
-	public function loadValues(IRecord $record, $values = null) {
+	public function loadValues(IRecord $record, $values = null)
+	{
 		try {
 			$key = $record->getValues($this->getConfig()->getPrimaryColumns());
 		} catch (\MemberAccessException $e) {
@@ -235,14 +253,15 @@ class Mapper extends \Nette\Object implements IMapper {
 
 	/**
 	 * Inser record into database
-	 * @param IRecord $record
+	 * @param IRecord record
 	 */
-	public function insert(IRecord $record) {
+	public function insert(IRecord $record)
+	{
 		try {
 			$record->onBeforeInsert($record);
 
 			$values = array();
-			
+
 			$config = $this->getConfig();
 
 			foreach ($config->getColumns() as $column) {
@@ -270,18 +289,19 @@ class Mapper extends \Nette\Object implements IMapper {
 			}
 
 			$record->onAfterInsert($record);
-
 		} catch (\Exception $e) {
 			throw new \ModelException("Insert failed. " . $e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
 
+
 	/**
 	 * Update record
-	 * @param IRecord $record
+	 * @param IRecord record
 	 */
-	public function update(IRecord $record) {
+	public function update(IRecord $record)
+	{
 		try {
 			$record->onBeforeUpdate($record);
 
@@ -308,18 +328,19 @@ class Mapper extends \Nette\Object implements IMapper {
 			}
 
 			$record->onAfterUpdate($record);
-
 		} catch (\Exception $e) {
 			throw new \ModelException("Update failed. " . $e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
 
+
 	/**
 	 * Delete record
-	 * @param IRecord $record
+	 * @param IRecord record
 	 */
-	public function delete(IRecord $record) {
+	public function delete(IRecord $record)
+	{
 		try {
 			$record->onBeforeDelete($record);
 
@@ -332,7 +353,6 @@ class Mapper extends \Nette\Object implements IMapper {
 			$record->setState(IRecord::STATE_DELETED);
 
 			$record->onAfterDelete($record);
-
 		} catch (Exception $e) {
 			throw new \ModelException("Delete failed. " . $e->getMessage(), $e->getCode(), $e);
 		}
