@@ -130,7 +130,7 @@ class Config extends \Nette\Object
 	public function getSize($name)
 	{
 		$column = $this->getColumn($name);
-		return $column ? $column["size"] : null;
+		return isset($column["size"]) ? $column["size"] : null;
 	}
 
 
