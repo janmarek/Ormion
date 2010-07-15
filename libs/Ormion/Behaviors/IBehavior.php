@@ -14,5 +14,5 @@ interface IBehavior
 	 * Setup behavior
 	 * @param IRecord record
 	 */
-	public function setUp(Ormion\IRecord $record);
+	public function setUp(\Ormion\IRecord $record);
 }
